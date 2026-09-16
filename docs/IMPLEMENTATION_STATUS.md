@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / 초기 R01 준비
+최종 갱신: 2026-09-16 / R02 서버·DB 기반 검증
 
 ## 네 가지 완료 축
 
@@ -103,3 +103,8 @@
 | R01 | `git switch -c feat/fullstack-lee` | 로컬 기능 브랜치 생성 성공 |
 | R01 | S01~S11 정규화 본문 SHA-256 재계산 | PROJECT_PLAN에 기록된 해시와 11/11 일치 |
 | R01 | 원문 복원 규칙 독립 재감사 | S02/S04/S05/S06/S07/S09~S11 누락·재작성 문제를 발견해 별도 수정 |
+| R02 | 시스템 `python --version`, `python -m venv .venv` | Windows Store 별칭만 있어 실패; 전역 설치는 하지 않음 |
+| R02 | 작업공간 Python 3.12.14로 `.venv` 생성·requirements 설치·`pip check` | 설치 성공, broken requirements 없음 |
+| R02 | 최신 bcrypt 5.0.0 해시 smoke | Passlib backend의 72바이트 탐지 단계에서 실패; 호환 조합 검증 필요 확인 |
+| R02 | bcrypt 4.0.1 재설치 후 bcrypt_sha256 smoke | 4자·100자 ASCII·100자 한글·72바이트 이후 차이 모두 PASS |
+| R02 | `.venv/Scripts/python.exe -m pytest tests/test_bootstrap.py -q` | 8 passed, dependency deprecation warning 2건 |
