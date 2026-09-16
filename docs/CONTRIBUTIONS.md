@@ -34,7 +34,8 @@
 | R15 보강 | Cerhovah | health/login 정확한 200과 문서 endpoint별 계약 검사 | `5885a19` | Node 18 passed, frontend/contract 39 passed, 전체 132 passed | 없음 | 로컬 기능 브랜치 | 검토용 설명 작성·본인 확인 대기 |
 | R15 이후 백엔드 보강 | Cerhovah | SQLite PRAGMA 초기화 실패·취소 시 연결 정리 | `daa1592` | bootstrap 12 passed, 전체 135 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 | R16 | Cerhovah | lifespan HTTPX 실제 AI adapter·전체 timeout·안전한 오류 분류 | `0d53a87` | AI/bootstrap/chat 92 passed, 전체 178 passed, Node 18 passed, 외부 호출 0회 | 없음 | 로컬 기능 브랜치 | 예정 |
-| R17 | Cerhovah | 실제 SQLite INSERT·COMMIT 실패 rollback·로그·복구 검증 | 다음 기록에서 갱신 | DB 실패 2 passed, 전체 180 passed | 없음 | 로컬 기능 브랜치 | 예정 |
+| R17 | Cerhovah | 실제 SQLite INSERT·COMMIT 실패 rollback·로그·복구 검증 | `66dccbf` | DB 실패 2 passed, 전체 180 passed | 없음 | 로컬 기능 브랜치 | 예정 |
+| R18 | Cerhovah | 읽기 전용 DB·격리 smoke·정확한 Git 기여 감사 도구 | 다음 기록에서 갱신 | verification 5 passed, 전체 185 passed, Node 18 passed; 실제 DB 5행·후보 21개 | 없음 | 로컬 기능 브랜치 | 예정 |
 
 ## 팀 역할과 실제 이력
 

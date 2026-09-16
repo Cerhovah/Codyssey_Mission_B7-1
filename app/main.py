@@ -29,6 +29,7 @@ def create_app(
     settings: Settings | None = None,
     *,
     ai_transport: httpx.AsyncBaseTransport | None = None,
+    log_path: Path | None = LOG_PATH,
 ) -> FastAPI:
     """설정을 주입할 수 있는 FastAPI 애플리케이션을 만듭니다."""
 
@@ -38,6 +39,8 @@ def create_app(
         application.state.settings = active_settings
         application.state.chat_turn_locks = {}
         application.state.chat_turn_locks_guard = asyncio.Lock()
+        if log_path is not None:
+            configure_logging(log_path)
         await initialize_database(active_settings)
         async with create_ai_http_client(
             active_settings,
@@ -52,7 +55,6 @@ def create_app(
         lifespan=lifespan,
         default_response_class=UTF8JSONResponse,
     )
-    configure_logging(LOG_PATH)
     register_error_handlers(application)
     application.include_router(auth_router)
     application.include_router(chat_router)

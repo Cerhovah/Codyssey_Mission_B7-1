@@ -1,12 +1,12 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R17 실제 SQLite 실패·rollback·로그 복구 검증
+최종 갱신: 2026-09-16 / R18 DB·smoke·Git 기여 감사 도구와 실제 샘플 검증
 
 ## 네 가지 완료 축
 
 | 축 | 상태 | 현재 근거 / 다음 조건 |
 |---|---|---|
-| LOCAL_MINIMUM | NOT_RUN | R01~R17 구현·프론트 통합 회귀 완료; R18~R20과 최종 로컬 게이트 남음 |
+| LOCAL_MINIMUM | NOT_RUN | R01~R18 구현·프론트 통합 회귀 완료; R19~R20과 새 환경 최종 로컬 게이트 남음 |
 | REAL_AI | BLOCKED_EXTERNAL | 실제 코디세이 공급자 URL·모델·키·사용 권한·유료 호출 승인 필요 |
 | PUBLIC_URL | BLOCKED_EXTERNAL | AWS 계정·리전·비용·보안그룹·TLS/HTTP 위험·외부 공개 승인 필요 |
 | TEAM_HISTORY | NEEDS_TEAM_REVIEW | 평가 저장소의 팀원별 SHA·PR·최종 브랜치 범위 미확인 |
@@ -38,13 +38,13 @@
 | M11 | 외부 URL | NOT_RUN | 외부 조건은 상단 PUBLIC_URL에 별도 기록; 배포·공개 승인 필요 |
 | M12 | 필수 기술 문서 | NOT_RUN | 초기 문서만 존재; 실제 결과 반영 필요 |
 | M13 | 비밀값 환경변수·Git 제외 | NOT_RUN | ignore 정적 확인과 추적 검사 예정 |
-| M14 | 브랜치 전략·작업 흔적 | PASS | `feat/fullstack-lee`에서 기준 SHA 이후 본인 명의 기능 커밋 10개 확인 |
+| M14 | 브랜치 전략·작업 흔적 | PASS | 명시한 base..ref와 정확한 이메일로 본인 non-merge·비어 있지 않은 로컬 후보 21개 확인 |
 | M15 | 실제 PR merge | NOT_RUN | 원격 작업 별도 승인 필요 |
 | M16 | 팀원별 유의미한 커밋 10개 | NOT_RUN | 팀 평가 저장소 이력 미확인 |
 | M17 | 역할·이력 일치 | NOT_RUN | 실제 팀 SHA/PR 미확인 |
 | M18 | Python/FastAPI/SQLite | PASS | Python 3.12.14 가상환경, FastAPI 0.141.1, aiosqlite 0.22.1 실제 테스트 |
 | M19 | GitHub 저장소 링크 | NOT_RUN | 원격 주소 확인, 제출 대상 확인 필요 |
-| M20 | DB 확인 가이드 | NOT_RUN | 도구 구현 전 |
+| M20 | DB 확인 가이드 | PASS | README에 바인딩된 읽기 전용 `check_db.py`/`check_logs.sql`과 별도 운영 로그 절차 기록, 실제 DB 5행 조회 |
 | M21 | 여섯 흐름 개인 설명 | NOT_RUN | 실제 구현·직접 확인 후 작성 |
 
 ## T01~T33 테스트 추적표
@@ -81,7 +81,7 @@
 | T26 | PASS | 느린 성공·504·JSON 500·비JSON 500에서 로딩 차단·입력 보존·폼 복구와 후속 정상 전송 |
 | T27 | PASS | A의 느린 성공·늦은 401 중 로그아웃→B 로그인 뒤 A 응답 비표시·B 세션 유지, 두 탭 전환 동기화 |
 | T28 | PASS | 360×640 내부 스크롤·입력, Enter/Shift+Enter·IME guard, 모달 키보드, 저장 후 HTML 문자열 비실행 |
-| T29 | NOT_RUN | SQL 확인 도구 |
+| T29 | PASS | 현재 실행 설정을 `data/browser_e2e.db`로 지정해 사용자 1의 최근 5행을 id 내림차순 실제 조회; 임시 A/B DB의 최신 20행·격리·무변경도 검증 |
 | T30 | NOT_RUN | 새 가상환경 재현 |
 | T31 | BLOCKED_EXTERNAL | 승인된 실제 AI 두 턴 필요 |
 | T32 | BLOCKED_EXTERNAL | 승인된 외부 배포 필요 |
@@ -172,3 +172,7 @@
 | R17 | 실제 SQLite COMMIT 실패 | INSERT·SELECT 완료 뒤 미커밋 행을 확인하고 commit 1회 실패 주입, rollback 전후 `in_transaction` true→false |
 | R17 | 라우터·로그·복구 | 두 경로 모두 정확한 500/detail·`db_save_failed error=database_error` 1회·비밀 비반사, 같은 앱 후속 200·정상 1행 |
 | R17 | 전체 Python 회귀 | 180 passed, dependency warning 2건 |
+| R18 | `scripts/smoke_test.py` | 임시 DB 가입→로그인→채팅→기록 PASS, `mode=mock external_calls=0`; hostile real 환경과 운영 DB·로그 무변경 |
+| R18 | `scripts/check_db.py --user-id 1` | 현재 실행 설정의 `data/browser_e2e.db`에서 id `8,7,6,5,1` 5행 실제 조회; 읽기 전용·사용자 바인딩 |
+| R18 | `scripts/audit_contributions.py` | 명시한 base/ref/email에서 실제 author 1명, 유효 후보 21개, 빈 diff 0, 최소 미달 NO; 내용 검토·PR은 자동 판정하지 않음 |
+| R18 | 검증 도구 회귀와 전체 회귀 | verification 5 passed; 전체 Python 185 passed, warning 2건; Node 18 passed |

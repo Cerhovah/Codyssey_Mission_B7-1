@@ -11,7 +11,7 @@
 - `PUBLIC_URL`: BLOCKED_EXTERNAL — AWS/비용/외부 공개 승인이 필요합니다.
 - `TEAM_HISTORY`: NEEDS_TEAM_REVIEW — 개인 저장소 이력은 팀 4명 기여·PR 증거를 대신하지 않습니다.
 
-현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. OpenAI 호환 AI adapter는 가짜 HTTP transport로 계약·timeout·오류 경로를 검증했지만 실제 공급자 호출은 승인 대기입니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구도 검증했으며, 운영 확인 도구와 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
+현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. OpenAI 호환 AI adapter는 가짜 HTTP transport로 계약·timeout·오류 경로를 검증했지만 실제 공급자 호출은 승인 대기입니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구, 격리된 API smoke, 읽기 전용 DB 조회, 정확한 Git 범위 감사까지 검증했습니다. R19~R20의 배포 절차와 새 환경 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
 
 ## 문제와 사용자
 
@@ -83,6 +83,32 @@ python3 -m venv .venv
 브라우저 검증 주소는 `http://127.0.0.1:8000`입니다. HTML 파일을 직접 여는 방식은 지원하지 않습니다.
 
 `constraints.txt`는 Windows의 작업공간 Python 3.12.14에서 실제 설치·`pip check`·해시 smoke를 통과한 조합입니다. 특히 `passlib 1.7.4`와 최신 `bcrypt 5.0.0` 조합은 이 환경의 backend 탐지에서 실패하여, 긴 입력 구분 테스트를 통과한 `bcrypt 4.0.1`을 고정했습니다. 배포 Python/OS에서는 다시 설치 검증해야 합니다.
+
+## 로컬 검증 도구
+
+아래 명령은 저장소 루트에서 실행합니다. 최소 API smoke는 현재 `.env`와 운영 DB를 읽지 않고 임시 DB·Mock 모드·외부 호출 차단 transport를 사용합니다. 토큰·비밀번호·질문·응답 본문은 출력하지 않습니다.
+
+```powershell
+.venv/Scripts/python.exe scripts/smoke_test.py
+```
+
+DB 대화 기록은 현재 `DATABASE_URL`이 가리키는 기존 SQLite 파일을 읽기 전용으로 엽니다. 먼저 로그인한 사용자로 대화 한 건을 만든 뒤 `GET /api/me/chats` 응답의 실제 `user_id`를 사용하며, `1`을 고정 사용자라고 가정하지 않습니다. 이 도구는 질문과 답변 원문을 표시하므로 로컬 운영자만 실행하고 실제 사용자 결과를 Git·Issue·채팅에 붙이지 않습니다.
+
+```powershell
+.venv/Scripts/python.exe scripts/check_db.py --user-id <실제 사용자 ID>
+```
+
+`scripts/check_logs.sql`도 같은 **DB 대화 기록**을 확인하는 고정 SQL이며 `:user_id`를 바인딩합니다. 서버 운영 이벤트는 별개입니다. 로컬 파일 로그는 `Get-Content -LiteralPath logs/app.log -Tail 100`, 배포 후 journal은 `journalctl -u ai-assistant -n 100 --no-pager`로 확인합니다.
+
+개인 Git 후보 감사는 저장소·대상 ref·기준 SHA·정확한 작성자 이메일을 모두 명시합니다. 로컬 이력만 읽고 fetch/push하지 않으며, 커밋 수가 기준을 넘어도 내용 검토나 실제 PR을 자동 PASS 처리하지 않습니다.
+
+```powershell
+.venv/Scripts/python.exe scripts/audit_contributions.py `
+  --repository . `
+  --ref feat/fullstack-lee `
+  --base 6b2ff28ab3947884b5ffe6f54f3bf28b60107d42 `
+  --author-email ljh951206@gmail.com
+```
 
 ## 문서와 증빙
 
