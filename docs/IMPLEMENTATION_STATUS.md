@@ -28,20 +28,20 @@
 | M01 | 같은 화면 질문·응답 | NOT_RUN | 구현 전 |
 | M02 | 회원가입·로그인 | NOT_RUN | 구현 전 |
 | M03 | 인증별 접근제어 | NOT_RUN | 구현 전 |
-| M04 | 실제 AI API 호출 | BLOCKED_EXTERNAL | 공급자·키·호출 승인 필요 |
+| M04 | 실제 AI API 호출 | NOT_RUN | 외부 조건은 상단 REAL_AI에 별도 기록; 공급자·키·호출 승인 필요 |
 | M05 | 최근 사용자 문맥 | NOT_RUN | 구현 전 |
 | M06 | 대화 DB 누적·영속 | NOT_RUN | 구현 전 |
 | M07 | 사용자별 기록 조회 | NOT_RUN | 구현 전 |
 | M08 | 요청·AI·DB 성공/실패 로그 | NOT_RUN | 구현 전 |
 | M09 | AI 실패/timeout 복구 | NOT_RUN | 구현 전 |
 | M10 | 입력 검증 | NOT_RUN | 구현 전 |
-| M11 | 외부 URL | BLOCKED_EXTERNAL | 배포·공개 승인 필요 |
+| M11 | 외부 URL | NOT_RUN | 외부 조건은 상단 PUBLIC_URL에 별도 기록; 배포·공개 승인 필요 |
 | M12 | 필수 기술 문서 | NOT_RUN | 초기 문서만 존재; 실제 결과 반영 필요 |
 | M13 | 비밀값 환경변수·Git 제외 | NOT_RUN | ignore 정적 확인과 추적 검사 예정 |
 | M14 | 브랜치 전략·작업 흔적 | NOT_RUN | 기능 브랜치 생성; 실제 이력 누적 필요 |
-| M15 | 실제 PR merge | BLOCKED_EXTERNAL | 원격 작업 별도 승인 필요 |
-| M16 | 팀원별 유의미한 커밋 10개 | NEEDS_TEAM_REVIEW | 팀 평가 저장소 이력 미확인 |
-| M17 | 역할·이력 일치 | NEEDS_TEAM_REVIEW | 실제 팀 SHA/PR 미확인 |
+| M15 | 실제 PR merge | NOT_RUN | 원격 작업 별도 승인 필요 |
+| M16 | 팀원별 유의미한 커밋 10개 | NOT_RUN | 팀 평가 저장소 이력 미확인 |
+| M17 | 역할·이력 일치 | NOT_RUN | 실제 팀 SHA/PR 미확인 |
 | M18 | Python/FastAPI/SQLite | NOT_RUN | 의존성·기동 검증 전 |
 | M19 | GitHub 저장소 링크 | NOT_RUN | 원격 주소 확인, 제출 대상 확인 필요 |
 | M20 | DB 확인 가이드 | NOT_RUN | 도구 구현 전 |
@@ -101,3 +101,5 @@
 |---|---|---|
 | R01 | `git status --short --branch`, author/remote/log 확인 | clean main, 기준 SHA와 작성자·개인 원격 확인 |
 | R01 | `git switch -c feat/fullstack-lee` | 로컬 기능 브랜치 생성 성공 |
+| R01 | S01~S11 정규화 본문 SHA-256 재계산 | PROJECT_PLAN에 기록된 해시와 11/11 일치 |
+| R01 | 원문 복원 규칙 독립 재감사 | S02/S04/S05/S06/S07/S09~S11 누락·재작성 문제를 발견해 별도 수정 |
