@@ -1,0 +1,40 @@
+# Python 가상환경과 캐시
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# 보안 및 환경 변수
+.env
+.env.local
+.env.*
+!.env.example
+*.pem
+*.key
+
+# SQLite 데이터베이스와 부속 파일
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+*.db-*
+*.sqlite-*
+*.sqlite3-*
+
+# 로그 파일
+logs/
+*.log
+
+# 테스트·로컬 생성물
+.pytest_cache/
+.coverage
+htmlcov/
+artifacts/
+deploy/generated/
+*.bak
+
+# OS 및 IDE 설정
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
