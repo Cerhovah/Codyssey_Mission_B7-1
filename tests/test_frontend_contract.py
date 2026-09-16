@@ -219,6 +219,35 @@ def test_only_protected_api_unauthorized_clears_the_session() -> None:
     )
 
 
+def test_chat_loading_blocks_duplicate_submit_and_recovers_in_finally() -> None:
+    """느린 요청 중 모든 제출 경로를 막고 성공·실패 뒤 폼을 복구합니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    submit_block = app_source.split("async function handleChatSubmit", 1)[1]
+    submit_block = submit_block.split("async function loadChatHistory", 1)[0]
+
+    assert "if (sending || loadingHistory)" in submit_block
+    assert "setSending(true)" in submit_block
+    assert "} finally {" in submit_block
+    assert "setSending(false)" in submit_block
+    assert 'elements.chatForm.setAttribute("aria-busy", String(busy))' in app_source
+    assert 'elements.messageList.setAttribute("aria-busy", String(busy))' in app_source
+    assert 'elements.sendButton.textContent = sending' in app_source
+    assert "elements.questionInput.disabled = !authenticated || busy" in app_source
+
+
+def test_failed_chat_keeps_question_for_manual_retry() -> None:
+    """실패 시 입력을 보존하고 성공한 현재 요청에서만 비웁니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    submit_block = app_source.split("async function handleChatSubmit", 1)[1]
+    submit_block = submit_block.split("async function loadChatHistory", 1)[0]
+    success_block, catch_block = submit_block.split("} catch (error)", 1)
+
+    assert 'elements.questionInput.value = ""' in success_block
+    assert 'elements.questionInput.value = ""' not in catch_block
+
+
 def test_login_stores_only_access_token_and_password_stays_ephemeral() -> None:
     """비밀번호·사용자 입력을 브라우저 저장소에 기록하지 않습니다."""
 

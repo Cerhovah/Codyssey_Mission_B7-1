@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R11 API 오류·세션 만료 검증
+최종 갱신: 2026-09-16 / R12 로딩·중복 전송·오류 복구 검증
 
 ## 네 가지 완료 축
 
@@ -77,8 +77,8 @@
 | T22 | PASS | ignore 15/15과 `/.env`·DB·로그·Git·README HTTP 404 검증 |
 | T23 | NOT_RUN | AI 모드 판정 |
 | T24 | NOT_RUN | OpenAPI·문서·스키마 |
-| T25 | NOT_RUN | 브라우저 핵심 E2E |
-| T26 | NOT_RUN | 브라우저 오류·로딩 복구 |
+| T25 | PASS | 로컬 브라우저 가입 → 로그인 → 질문 → 답변 뒤 로그아웃·재로그인과 저장 기록 복원 |
+| T26 | PASS | 느린 성공·504·JSON 500·비JSON 500에서 로딩 차단·입력 보존·폼 복구와 후속 정상 전송 |
 | T27 | NOT_RUN | 늦은 응답 사용자 격리 |
 | T28 | NOT_RUN | XSS·모바일·키보드·IME |
 | T29 | NOT_RUN | SQL 확인 도구 |
@@ -136,3 +136,9 @@
 | R11 | 로컬 JWT 서명키 교체 뒤 저장 토큰으로 브라우저 새로고침 | history 401 뒤 토큰 null·대화 초기화·만료 안내 로그인 모달 확인 |
 | R11 | 같은 모달에서 잘못된 비밀번호 로그인 | 로그인 401 detail만 폼에 표시, 재호출 루프·자동 로그인 없음 |
 | R11 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 119 passed, dependency deprecation warning 2건 |
+| R12 | Node `--test tests/frontend/api.test.mjs` | 10 passed; 네트워크·서버 오류 모두 요청당 호출 1회와 안전한 비JSON 처리 유지 |
+| R12 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py -q` | 28 passed; submit guard·`aria-busy`·`finally` 복구·실패 입력 보존 검증 |
+| R12 | 테스트 전용 로컬 ASGI에서 1.5초 지연 성공 | textarea·버튼 비활성화와 `전송 중...`·진행 상태 확인 뒤 답변·latency 표시와 폼 복구 |
+| R12 | 같은 브라우저에서 강제 504·JSON 500·비JSON 500 | 서버 detail 또는 안전 문구 표시, 입력 보존, 원문 오류 본문 비노출, 각 실패 뒤 폼 복구 |
+| R12 | 오류 뒤 정상 질문 전송과 새로고침 | 후속 200 성공, 실패 질문은 저장되지 않고 성공 기록만 복원, console warning/error 0건 |
+| R12 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 121 passed, dependency deprecation warning 2건 |
