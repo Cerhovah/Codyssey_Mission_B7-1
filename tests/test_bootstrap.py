@@ -105,10 +105,23 @@ def test_health_contract_and_static_boundary(test_settings: Settings) -> None:
     assert health.status_code == 200
     assert health.json() == {"status": "ok"}
     assert health.headers["X-AI-Mode"] == "mock"
+    assert health.headers["content-type"] == "application/json; charset=utf-8"
     assert root.status_code == 503
     assert root.json() == {"detail": "프론트엔드가 아직 준비되지 않았습니다."}
     assert env_file.status_code == 404
     assert database_file.status_code == 404
+
+
+def test_openapi_declares_health_response_model(test_settings: Settings) -> None:
+    """대화형 문서가 health의 정확한 JSON 모델을 노출하는지 확인합니다."""
+
+    with TestClient(create_app(test_settings)) as client:
+        schema = client.get("/openapi.json").json()
+
+    response_schema = schema["paths"]["/api/health"]["get"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"]
+    assert response_schema["$ref"].endswith("/HealthResponse")
 
 
 def test_database_url_resolves_to_configured_file(test_settings: Settings) -> None:

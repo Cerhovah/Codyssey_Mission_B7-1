@@ -4,12 +4,14 @@
 
 ## 현재 상태
 
-이 저장소는 팀 Organization과 분리된 개인 기준 구현입니다. 현재는 명세·API 계약·보안 제외 규칙·검증 증빙 틀을 복원한 준비 단계이며, 기능별 구현과 검증 결과는 `docs/IMPLEMENTATION_STATUS.md`에 사실대로 갱신합니다.
+이 저장소는 팀 Organization과 분리된 개인 기준 구현입니다. 최신 명세와 API 계약을 기준으로 기능 단위 개발 중이며, 실제 구현·검증 결과는 `docs/IMPLEMENTATION_STATUS.md`에 사실대로 갱신합니다.
 
 - `LOCAL_MINIMUM`: NOT_RUN
 - `REAL_AI`: BLOCKED_EXTERNAL — 실제 공급자 계약·키·호출 승인이 필요합니다.
 - `PUBLIC_URL`: BLOCKED_EXTERNAL — AWS/비용/외부 공개 승인이 필요합니다.
 - `TEAM_HISTORY`: NEEDS_TEAM_REVIEW — 개인 저장소 이력은 팀 4명 기여·PR 증거를 대신하지 않습니다.
+
+현재 백엔드는 회원가입·로그인·보호 API·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·성공/실패 운영 로그까지 구현했습니다. 브라우저 프론트가 아직 없으므로 `LOCAL_MINIMUM`은 계속 `NOT_RUN`입니다.
 
 ## 문제와 사용자
 
@@ -40,6 +42,10 @@
 ```
 
 FastAPI는 `/`에서 `static/index.html`, `/static/`에서 필요한 정적 자원만 제공합니다. 저장소 전체나 `.env`, DB, 로그는 정적으로 노출하지 않습니다.
+
+개발·테스트의 `AI_MODE=mock`은 외부 HTTP를 전혀 호출하지 않고 `[Mock]` 표식이 있는 결정적 응답을 반환하지만, 인증·문맥 조회·DB commit은 실제 경로를 사용합니다. `AI_MODE=real`에서 키가 없으면 기동을 거부하며, 키가 있어도 R16 실제 adapter가 검증되기 전에는 Mock으로 자동 성공 처리하지 않습니다.
+
+같은 사용자의 동시 채팅은 단일 서버 프로세스 안에서 사용자별 turn lock으로 직렬화합니다. 문맥 조회 뒤 AI를 기다리는 동안 SQLite 쓰기 트랜잭션은 열지 않으며, 배포는 명세대로 Uvicorn 단일 worker를 전제로 합니다. 다중 worker/다중 인스턴스에는 별도의 분산 순서 제어가 필요합니다.
 
 ## 환경 설정
 

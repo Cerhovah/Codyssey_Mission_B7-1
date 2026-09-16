@@ -5,8 +5,9 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.responses import UTF8JSONResponse
 
 
 logger = logging.getLogger("ai_assistant.errors")
@@ -66,30 +67,33 @@ def register_error_handlers(application: FastAPI) -> None:
     async def validation_error_handler(
         request: Request,
         exc: RequestValidationError,
-    ) -> JSONResponse:
+    ) -> UTF8JSONResponse:
         status_code, message = _validation_message(request, exc)
-        return JSONResponse(status_code=status_code, content={"detail": message})
+        return UTF8JSONResponse(status_code=status_code, content={"detail": message})
 
     @application.exception_handler(StarletteHTTPException)
     async def http_error_handler(
         _request: Request,
         exc: StarletteHTTPException,
-    ) -> JSONResponse:
+    ) -> UTF8JSONResponse:
         detail = exc.detail if isinstance(exc.detail, str) else "요청을 처리할 수 없습니다."
         if detail == "Not Found":
             detail = "요청한 경로를 찾을 수 없습니다."
         elif detail == "Method Not Allowed":
             detail = "허용되지 않은 요청 방식입니다."
-        return JSONResponse(
+        return UTF8JSONResponse(
             status_code=exc.status_code,
             content={"detail": detail},
             headers=exc.headers,
         )
 
     @application.exception_handler(Exception)
-    async def unexpected_error_handler(_request: Request, exc: Exception) -> JSONResponse:
+    async def unexpected_error_handler(
+        _request: Request,
+        exc: Exception,
+    ) -> UTF8JSONResponse:
         logger.error("unexpected_server_error error_type=%s", type(exc).__name__)
-        return JSONResponse(
+        return UTF8JSONResponse(
             status_code=500,
             content={"detail": "서버 처리 중 오류가 발생했습니다."},
         )

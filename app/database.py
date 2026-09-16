@@ -7,7 +7,7 @@ from pathlib import Path
 import aiosqlite
 
 from app.config import Settings
-from app.models import UserRow
+from app.models import ChatLogRow, UserRow
 
 
 SCHEMA_SQL = """
@@ -137,3 +137,81 @@ async def get_user_by_username(settings: Settings, username: str) -> UserRow | N
             )
         ).fetchone()
     return UserRow(**dict(row)) if row is not None else None
+
+
+async def list_chat_logs(settings: Settings, user_id: int) -> list[ChatLogRow]:
+    """현재 사용자의 전체 대화를 id 오름차순으로 조회합니다."""
+
+    async with database_connection(settings) as connection:
+        rows = await (
+            await connection.execute(
+                """
+                SELECT id, user_id, question, response, latency_ms, created_at
+                FROM chat_logs
+                WHERE user_id = ?
+                ORDER BY id ASC
+                """,
+                (user_id,),
+            )
+        ).fetchall()
+    return [ChatLogRow(**dict(row)) for row in rows]
+
+
+async def get_recent_chat_logs(
+    settings: Settings,
+    user_id: int,
+    limit: int,
+) -> list[ChatLogRow]:
+    """현재 사용자의 최신 대화를 조회한 뒤 과거부터 정렬합니다."""
+
+    async with database_connection(settings) as connection:
+        rows = await (
+            await connection.execute(
+                """
+                SELECT id, user_id, question, response, latency_ms, created_at
+                FROM chat_logs
+                WHERE user_id = ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (user_id, limit),
+            )
+        ).fetchall()
+    return [ChatLogRow(**dict(row)) for row in reversed(rows)]
+
+
+async def save_chat_log(
+    settings: Settings,
+    user_id: int,
+    question: str,
+    response: str,
+    latency_ms: int,
+) -> ChatLogRow:
+    """AI 성공 결과를 한 행으로 저장하고 commit 뒤 반환합니다."""
+
+    async with database_connection(settings) as connection:
+        try:
+            cursor = await connection.execute(
+                """
+                INSERT INTO chat_logs (user_id, question, response, latency_ms)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user_id, question, response, latency_ms),
+            )
+            row = await (
+                await connection.execute(
+                    """
+                    SELECT id, user_id, question, response, latency_ms, created_at
+                    FROM chat_logs
+                    WHERE id = ?
+                    """,
+                    (cursor.lastrowid,),
+                )
+            ).fetchone()
+            if row is None:
+                raise aiosqlite.DatabaseError("저장된 대화 행을 다시 찾을 수 없습니다.")
+            await connection.commit()
+        except aiosqlite.Error:
+            await connection.rollback()
+            raise
+    return ChatLogRow(**dict(row))

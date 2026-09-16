@@ -12,6 +12,7 @@ from passlib.hash import bcrypt_sha256
 
 from app.config import Settings
 from app.database import get_user_by_username
+from app.logger import log_request_received
 from app.models import UserRow
 from app.schemas import TokenData
 
@@ -127,15 +128,18 @@ async def get_current_user(
     """Bearer 토큰과 실제 DB 사용자 존재를 모두 확인합니다."""
 
     if credentials is None or credentials.scheme.lower() != "bearer":
+        log_request_received("anonymous", request.url.path)
         raise invalid_token_error()
 
     settings: Settings = request.app.state.settings
     try:
         token_data = decode_access_token(credentials.credentials, settings)
     except JWTError as exc:
+        log_request_received("anonymous", request.url.path)
         raise invalid_token_error() from exc
 
     if token_data.username is None:
+        log_request_received("anonymous", request.url.path)
         raise invalid_token_error()
     try:
         user = await get_user_by_username(settings, token_data.username)
@@ -145,5 +149,6 @@ async def get_current_user(
             detail="인증 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
         ) from exc
     if user is None:
+        log_request_received("anonymous", request.url.path)
         raise invalid_token_error()
     return user
