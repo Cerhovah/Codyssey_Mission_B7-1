@@ -95,6 +95,7 @@ def test_api_calls_are_centralized_in_api_module() -> None:
     assert 'request("/auth/register"' in api_source
     assert 'request("/health"' in api_source
     assert 'request("/chat"' in api_source
+    assert 'request("/me/chats"' in api_source
     assert "fetch(" not in auth_source
     assert "fetch(" not in app_source
     assert '"/api' not in auth_source
@@ -145,10 +146,55 @@ def test_chat_response_is_guarded_by_current_session() -> None:
     """로그아웃·사용자 전환 뒤 도착한 응답은 현재 화면에 그리지 않습니다."""
 
     app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    chat_block = app_source.split("async function handleChatSubmit", 1)[1]
+    chat_block = chat_block.split("async function loadChatHistory", 1)[0]
 
-    assert "requestGeneration !== sessionGeneration" in app_source
-    assert app_source.count("token !== getAccessToken()") == 2
-    assert "activeChatController?.abort()" in app_source
+    assert "requestGeneration !== sessionGeneration" in chat_block
+    assert chat_block.count("token !== getAccessToken()") == 2
+    assert "activeChatController?.abort()" in chat_block
+
+
+def test_history_uses_unwrapped_array_and_response_field() -> None:
+    """내 기록은 래퍼 없이 배열로 받고 각 항목의 response를 렌더링합니다."""
+
+    api_source = (STATIC_ROOT / "js" / "api.js").read_text(encoding="utf-8")
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+
+    assert 'request("/me/chats"' in api_source
+    assert "result.status !== 200" in api_source
+    assert "!Array.isArray(result.data)" in api_source
+    assert "chats: result.data" in api_source
+    assert "for (const item of result.chats)" in app_source
+    assert 'appendMessage("assistant", item.response, item.latency_ms)' in app_source
+    assert "item.answer" not in app_source
+
+
+def test_history_contract_validates_exact_item_types() -> None:
+    """기록 id·질문·응답·지연·생성시각의 타입을 화면 반영 전에 확인합니다."""
+
+    api_source = (STATIC_ROOT / "js" / "api.js").read_text(encoding="utf-8")
+
+    assert "Number.isInteger(item.id)" in api_source
+    assert 'typeof item.question === "string"' in api_source
+    assert 'typeof item.response === "string"' in api_source
+    assert "Number.isInteger(item.latency_ms)" in api_source
+    assert 'typeof item.created_at === "string"' in api_source
+
+
+def test_history_loading_blocks_chat_and_ignores_stale_sessions() -> None:
+    """기록 로딩 중 전송을 막고 사용자 전환 뒤 늦은 배열을 버립니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+
+    assert "const busy = sending || loadingHistory" in app_source
+    assert "if (sending || loadingHistory)" in app_source
+    assert "getChatHistory(token, controller.signal)" in app_source
+    history_block = app_source.split("async function loadChatHistory", 1)[1]
+    history_block = history_block.split("function handleAuthChange", 1)[0]
+    assert "requestGeneration !== sessionGeneration" in history_block
+    assert history_block.count("token !== getAccessToken()") == 2
+    assert "activeHistoryController?.abort()" in app_source
+    assert 'title: "대화 기록을 불러오지 못했습니다."' in history_block
 
 
 def test_login_stores_only_access_token_and_password_stays_ephemeral() -> None:

@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R09 첫 브라우저 수직 흐름 검증
+최종 갱신: 2026-09-16 / R10 브라우저 대화 이력 복원 검증
 
 ## 네 가지 완료 축
 
@@ -126,3 +126,8 @@
 | R09 | 숨은 로컬 브라우저에서 가입 → 로그인 → 질문 → Mock 답변 | 201 → 200 → 200; 같은 화면 질문/답변·0 ms 표시, 브라우저 warning/error 0건 |
 | R09 | `data/browser_e2e.db`와 `logs/app.log` 교차 확인 | 사용자 1명·대화 1행, request/AI start/AI success/DB save 이벤트 확인 |
 | R09 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 115 passed, dependency deprecation warning 2건 |
+| R10 | Node ESM `--check`로 `static/js/api.js`, `static/js/app.js` 검사 | 두 파일 모두 구문 검사 PASS |
+| R10 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py tests/test_chat.py -q` | 62 passed; 배열·response·필드 타입·history 세션 격리 검증 |
+| R10 | 기존 토큰으로 브라우저 새로고침, 로그아웃 후 재로그인 | 같은 DB의 질문·response·latency 복원, 로그아웃 즉시 화면 제거, console warning/error 0건 |
+| R10 | 신규 `browser_empty_r10` 계정 로그인과 DB 교차 확인 | 빈 배열 화면 유지; 기존 사용자 1행, 신규 사용자 0행으로 격리 확인 |
+| R10 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 118 passed, dependency deprecation warning 2건 |
