@@ -1,0 +1,28 @@
+[Unit]
+Description=AI Assistant FastAPI service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User={{APP_USER}}
+Group={{APP_GROUP}}
+WorkingDirectory={{APP_DIR}}
+EnvironmentFile={{ENV_FILE}}
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart={{APP_DIR}}/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGINT
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths={{DATA_DIR}} {{APP_DIR}}/logs
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

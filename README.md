@@ -11,7 +11,7 @@
 - `PUBLIC_URL`: BLOCKED_EXTERNAL — AWS/비용/외부 공개 승인이 필요합니다.
 - `TEAM_HISTORY`: NEEDS_TEAM_REVIEW — 개인 저장소 이력은 팀 4명 기여·PR 증거를 대신하지 않습니다.
 
-현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. OpenAI 호환 AI adapter는 가짜 HTTP transport로 계약·timeout·오류 경로를 검증했지만 실제 공급자 호출은 승인 대기입니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구, 격리된 API smoke, 읽기 전용 DB 조회, 정확한 Git 범위 감사까지 검증했습니다. R19~R20의 배포 절차와 새 환경 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
+현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. OpenAI 호환 AI adapter는 가짜 HTTP transport로 계약·timeout·오류 경로를 검증했지만 실제 공급자 호출은 승인 대기입니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구, 격리된 API smoke, 읽기 전용 DB 조회, 정확한 Git 범위 감사, 승인 전 EC2 설정 렌더링까지 검증했습니다. R20의 새 환경 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
 
 ## 문제와 사용자
 
@@ -118,6 +118,7 @@ DB 대화 기록은 현재 `DATABASE_URL`이 가리키는 기존 SQLite 파일�
 - 작업 순서: `docs/MILESTONES.md`
 - API 계약: `docs/api_spec.md`
 - 프론트 실행·이식 경계: `docs/FRONTEND_GUIDE.md`
+- EC2 배포 절차·승인 경계: `docs/DEPLOYMENT.md`
 - 실행·검증 상태: `docs/IMPLEMENTATION_STATUS.md`
 - 실제 기여 기록: `docs/CONTRIBUTIONS.md`
 

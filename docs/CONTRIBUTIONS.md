@@ -35,7 +35,8 @@
 | R15 이후 백엔드 보강 | Cerhovah | SQLite PRAGMA 초기화 실패·취소 시 연결 정리 | `daa1592` | bootstrap 12 passed, 전체 135 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 | R16 | Cerhovah | lifespan HTTPX 실제 AI adapter·전체 timeout·안전한 오류 분류 | `0d53a87` | AI/bootstrap/chat 92 passed, 전체 178 passed, Node 18 passed, 외부 호출 0회 | 없음 | 로컬 기능 브랜치 | 예정 |
 | R17 | Cerhovah | 실제 SQLite INSERT·COMMIT 실패 rollback·로그·복구 검증 | `66dccbf` | DB 실패 2 passed, 전체 180 passed | 없음 | 로컬 기능 브랜치 | 예정 |
-| R18 | Cerhovah | 읽기 전용 DB·격리 smoke·정확한 Git 기여 감사 도구 | 다음 기록에서 갱신 | verification 5 passed, 전체 185 passed, Node 18 passed; 실제 DB 5행·후보 21개 | 없음 | 로컬 기능 브랜치 | 예정 |
+| R18 | Cerhovah | 읽기 전용 DB·격리 smoke·정확한 Git 기여 감사 도구 | `b7a9ad6` | verification 5 passed, 전체 185 passed, Node 18 passed; 실제 DB 5행·후보 21개 | 없음 | 로컬 기능 브랜치 | 예정 |
+| R19 | Cerhovah | EC2 배포 절차와 Nginx/systemd 안전 렌더 템플릿 | 다음 기록에서 갱신 | deployment 13 passed, 전체 198 passed, Node 18 passed; generated ignore·외부변경 없음 | 없음 | 로컬 기능 브랜치 | 예정 |
 
 ## 팀 역할과 실제 이력
 

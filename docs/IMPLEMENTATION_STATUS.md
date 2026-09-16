@@ -1,12 +1,12 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R18 DB·smoke·Git 기여 감사 도구와 실제 샘플 검증
+최종 갱신: 2026-09-16 / R19 EC2 배포 절차·설정 템플릿 로컬 검증
 
 ## 네 가지 완료 축
 
 | 축 | 상태 | 현재 근거 / 다음 조건 |
 |---|---|---|
-| LOCAL_MINIMUM | NOT_RUN | R01~R18 구현·프론트 통합 회귀 완료; R19~R20과 새 환경 최종 로컬 게이트 남음 |
+| LOCAL_MINIMUM | NOT_RUN | R01~R19 구현·프론트 통합 회귀 완료; R20 새 환경 최종 로컬 게이트 남음 |
 | REAL_AI | BLOCKED_EXTERNAL | 실제 코디세이 공급자 URL·모델·키·사용 권한·유료 호출 승인 필요 |
 | PUBLIC_URL | BLOCKED_EXTERNAL | AWS 계정·리전·비용·보안그룹·TLS/HTTP 위험·외부 공개 승인 필요 |
 | TEAM_HISTORY | NEEDS_TEAM_REVIEW | 평가 저장소의 팀원별 SHA·PR·최종 브랜치 범위 미확인 |
@@ -176,3 +176,7 @@
 | R18 | `scripts/check_db.py --user-id 1` | 현재 실행 설정의 `data/browser_e2e.db`에서 id `8,7,6,5,1` 5행 실제 조회; 읽기 전용·사용자 바인딩 |
 | R18 | `scripts/audit_contributions.py` | 명시한 base/ref/email에서 실제 author 1명, 유효 후보 21개, 빈 diff 0, 최소 미달 NO; 내용 검토·PR은 자동 판정하지 않음 |
 | R18 | 검증 도구 회귀와 전체 회귀 | verification 5 passed; 전체 Python 185 passed, warning 2건; Node 18 passed |
+| R19 | 배포 설정 렌더 | 비root 계정·승인 경로를 넣어 ignored `deploy/generated/`의 systemd/Nginx 두 파일 생성; sudo·서비스·네트워크 변경 0건 |
+| R19 | 배포 템플릿 회귀 | 13 passed; 내부 `127.0.0.1:8000`, 단일 worker, 15초 proxy 여유, 입력 주입·root·상대경로·임의 출력·symlink·덮어쓰기 거부, generated ignore 확인 |
+| R19 | 전체 로컬 회귀 | Python 198 passed, dependency warning 2건; Node 18 passed |
+| R19 | 배포 적용 상태 | AWS·보안그룹·TLS·Swap·systemd·Nginx 적용은 미실행; PUBLIC_URL과 T32는 BLOCKED_EXTERNAL 유지 |
