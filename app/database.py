@@ -3,6 +3,7 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
+import sqlite3
 
 import aiosqlite
 
@@ -91,27 +92,28 @@ async def create_user(
                 "INSERT INTO users (username, hashed_password) VALUES (?, ?)",
                 (username, hashed_password),
             )
+            row = await (
+                await connection.execute(
+                    """
+                    SELECT id, username, hashed_password, created_at
+                    FROM users
+                    WHERE id = ?
+                    """,
+                    (cursor.lastrowid,),
+                )
+            ).fetchone()
+            if row is None:
+                raise aiosqlite.DatabaseError("저장된 사용자 행을 다시 찾을 수 없습니다.")
             await connection.commit()
         except aiosqlite.IntegrityError as exc:
             await connection.rollback()
-            raise DuplicateUsernameError from exc
+            if getattr(exc, "sqlite_errorcode", None) == sqlite3.SQLITE_CONSTRAINT_UNIQUE:
+                raise DuplicateUsernameError from exc
+            raise
         except aiosqlite.Error:
             await connection.rollback()
             raise
 
-        row = await (
-            await connection.execute(
-                """
-                SELECT id, username, hashed_password, created_at
-                FROM users
-                WHERE id = ?
-                """,
-                (cursor.lastrowid,),
-            )
-        ).fetchone()
-
-    if row is None:
-        raise aiosqlite.DatabaseError("저장된 사용자 행을 다시 찾을 수 없습니다.")
     return UserRow(**dict(row))
 
 

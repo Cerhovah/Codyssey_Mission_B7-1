@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from passlib.hash import bcrypt_sha256
 
-from app.auth import hash_password, verify_password
+from app.auth import PasswordHashError, hash_password, verify_password
 from app.config import Settings
 from app.database import get_user_by_username
 from app.main import create_app
@@ -59,6 +59,7 @@ def test_duplicate_username_returns_400(client: TestClient) -> None:
     ("username", "status_code", "detail"),
     [
         ("   ", 400, "아이디는 공백일 수 없습니다."),
+        (" a ", 422, "아이디는 최소 3자 이상이어야 합니다."),
         ("ab", 422, "아이디는 최소 3자 이상이어야 합니다."),
         ("x" * 51, 422, "아이디는 최대 50자까지 입력 가능합니다."),
     ],
@@ -167,6 +168,13 @@ async def test_hash_distinguishes_bytes_after_bcrypt_72_byte_boundary() -> None:
     assert not await verify_password(right, hashed)
 
 
+async def test_corrupt_password_hash_is_server_error_not_auth_failure() -> None:
+    """손상된 저장 해시를 일반 비밀번호 불일치로 숨기지 않습니다."""
+
+    with pytest.raises(PasswordHashError):
+        await verify_password("password1234", "not-a-valid-password-hash")
+
+
 @pytest.mark.parametrize(
     "payload",
     [
@@ -209,3 +217,34 @@ def test_register_database_failure_returns_safe_500(
         "detail": "회원가입을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."
     }
     assert "sensitive" not in response.text
+
+
+def test_non_unique_integrity_failure_returns_500(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """UNIQUE가 아닌 무결성 장애를 중복 아이디로 오인하지 않습니다."""
+
+    async def fail_create_user(*_args: object, **_kwargs: object) -> None:
+        raise aiosqlite.IntegrityError("NOT NULL constraint failed")
+
+    monkeypatch.setattr("app.routers.auth_router.create_user", fail_create_user)
+    response = client.post(
+        "/api/auth/register",
+        json={"username": "integrity", "password": "pass1234"},
+    )
+
+    assert response.status_code == 500
+    assert response.json()["detail"].startswith("회원가입을 처리하지 못했습니다.")
+
+
+def test_default_404_and_405_use_korean_detail(client: TestClient) -> None:
+    """프레임워크 기본 영문 오류도 공통 한국어 구조로 변환합니다."""
+
+    missing = client.get("/api/does-not-exist")
+    wrong_method = client.get("/api/auth/register")
+
+    assert missing.status_code == 404
+    assert missing.json() == {"detail": "요청한 경로를 찾을 수 없습니다."}
+    assert wrong_method.status_code == 405
+    assert wrong_method.json() == {"detail": "허용되지 않은 요청 방식입니다."}

@@ -23,8 +23,12 @@ def _validation_message(request: Request, exc: RequestValidationError) -> tuple[
     username = body.get("username")
     question = body.get("question")
 
-    if path == "/api/auth/register" and isinstance(username, str) and not username.strip():
-        return 400, "아이디는 공백일 수 없습니다."
+    if path == "/api/auth/register" and isinstance(username, str):
+        trimmed_username = username.strip()
+        if not trimmed_username:
+            return 400, "아이디는 공백일 수 없습니다."
+        if len(trimmed_username) < 3:
+            return 422, "아이디는 최소 3자 이상이어야 합니다."
     if path == "/api/chat" and isinstance(question, str) and not question.strip():
         return 400, "질문 내용은 공백일 수 없습니다."
 
@@ -72,6 +76,10 @@ def register_error_handlers(application: FastAPI) -> None:
         exc: StarletteHTTPException,
     ) -> JSONResponse:
         detail = exc.detail if isinstance(exc.detail, str) else "요청을 처리할 수 없습니다."
+        if detail == "Not Found":
+            detail = "요청한 경로를 찾을 수 없습니다."
+        elif detail == "Method Not Allowed":
+            detail = "허용되지 않은 요청 방식입니다."
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": detail},

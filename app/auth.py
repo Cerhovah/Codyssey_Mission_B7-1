@@ -8,6 +8,10 @@ from passlib.hash import bcrypt_sha256
 DEFAULT_BCRYPT_ROUNDS = 12
 
 
+class PasswordHashError(RuntimeError):
+    """저장 해시 형식이나 해시 backend 자체의 장애를 나타냅니다."""
+
+
 def _hash_password_sync(password: str, rounds: int) -> str:
     """스레드 경계 안에서 bcrypt 기반 해시를 계산합니다."""
 
@@ -19,8 +23,8 @@ def _verify_password_sync(password: str, hashed_password: str) -> bool:
 
     try:
         return bcrypt_sha256.verify(password, hashed_password)
-    except (TypeError, ValueError):
-        return False
+    except (TypeError, ValueError) as exc:
+        raise PasswordHashError("비밀번호 해시를 검증할 수 없습니다.") from exc
 
 
 async def hash_password(password: str, *, rounds: int = DEFAULT_BCRYPT_ROUNDS) -> str:
