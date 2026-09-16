@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R08 회원가입 UI·API 경계 검증
+최종 갱신: 2026-09-16 / R09 첫 브라우저 수직 흐름 검증
 
 ## 네 가지 완료 축
 
@@ -25,7 +25,7 @@
 
 | ID | 요구사항 | 상태 | 실제 증거 / 대기 조건 |
 |---|---|---|---|
-| M01 | 같은 화면 질문·응답 | NOT_RUN | 구현 전 |
+| M01 | 같은 화면 질문·응답 | PASS | 로컬 브라우저에서 질문과 Mock 답변·latency를 같은 화면에 렌더링 |
 | M02 | 회원가입·로그인 | PASS | 임시 DB에서 실제 사용자 가입 201·로그인 200·해시/JWT 검증 |
 | M03 | 인증별 접근제어 | PASS | 실제 `/api/chat`, `/api/me/chats`의 누락·변조·만료·삭제 사용자 401과 인증 우선순위 검증 |
 | M04 | 실제 AI API 호출 | NOT_RUN | 외부 조건은 상단 REAL_AI에 별도 기록; 공급자·키·호출 승인 필요 |
@@ -38,7 +38,7 @@
 | M11 | 외부 URL | NOT_RUN | 외부 조건은 상단 PUBLIC_URL에 별도 기록; 배포·공개 승인 필요 |
 | M12 | 필수 기술 문서 | NOT_RUN | 초기 문서만 존재; 실제 결과 반영 필요 |
 | M13 | 비밀값 환경변수·Git 제외 | NOT_RUN | ignore 정적 확인과 추적 검사 예정 |
-| M14 | 브랜치 전략·작업 흔적 | NOT_RUN | 기능 브랜치 생성; 실제 이력 누적 필요 |
+| M14 | 브랜치 전략·작업 흔적 | PASS | `feat/fullstack-lee`에서 기준 SHA 이후 본인 명의 기능 커밋 10개 확인 |
 | M15 | 실제 PR merge | NOT_RUN | 원격 작업 별도 승인 필요 |
 | M16 | 팀원별 유의미한 커밋 10개 | NOT_RUN | 팀 평가 저장소 이력 미확인 |
 | M17 | 역할·이력 일치 | NOT_RUN | 실제 팀 SHA/PR 미확인 |
@@ -53,7 +53,7 @@
 
 | ID | 상태 | 비고 |
 |---|---|---|
-| T01 | NOT_RUN | 기동·정적·health |
+| T01 | PASS | 로컬 Uvicorn에서 `/`, CSS·JS·health 200과 브라우저 로드 확인 |
 | T02 | PASS | 가입 201과 중복 400 응답·DB 저장 검증 |
 | T03 | PASS | 공백/2자/51자/trim/내부공백·대소문자 보존 검증 |
 | T04 | PASS | 3/4/100/101자·공백·100자 한글 경계 검증 |
@@ -121,3 +121,8 @@
 | R08 | Node ESM `--check`로 `static/js/api.js`, `static/js/auth.js` 검사 | 두 파일 모두 구문 검사 PASS |
 | R08 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py tests/test_auth.py -q` | 44 passed; 가입 201/400/422 서버 계약·UI 연결·취소 오류 격리 검증 |
 | R08 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 111 passed, dependency deprecation warning 2건 |
+| R09 | Node ESM `--check`로 `static/js/api.js`, `static/js/auth.js`, `static/js/app.js` 검사 | 세 파일 모두 구문 검사 PASS |
+| R09 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py tests/test_chat.py -q` | 59 passed; chat 필드·Unicode 길이·textContent·세션 응답 격리 검증 |
+| R09 | 숨은 로컬 브라우저에서 가입 → 로그인 → 질문 → Mock 답변 | 201 → 200 → 200; 같은 화면 질문/답변·0 ms 표시, 브라우저 warning/error 0건 |
+| R09 | `data/browser_e2e.db`와 `logs/app.log` 교차 확인 | 사용자 1명·대화 1행, request/AI start/AI success/DB save 이벤트 확인 |
+| R09 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 115 passed, dependency deprecation warning 2건 |

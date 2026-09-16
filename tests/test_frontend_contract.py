@@ -29,6 +29,7 @@ def test_root_and_stylesheet_are_served_by_fastapi(frontend_client: TestClient) 
     stylesheet = frontend_client.get("/static/css/style.css")
     api_script = frontend_client.get("/static/js/api.js")
     auth_script = frontend_client.get("/static/js/auth.js")
+    app_script = frontend_client.get("/static/js/app.js")
 
     assert root.status_code == 200
     assert root.headers["content-type"].startswith("text/html")
@@ -36,6 +37,7 @@ def test_root_and_stylesheet_are_served_by_fastapi(frontend_client: TestClient) 
     assert stylesheet.headers["content-type"].startswith("text/css")
     assert api_script.status_code == 200
     assert auth_script.status_code == 200
+    assert app_script.status_code == 200
     assert "javascript" in api_script.headers["content-type"]
 
 
@@ -77,6 +79,7 @@ def test_frontend_is_static_and_self_contained() -> None:
     assert "https://" not in html
     assert 'href="/static/css/style.css"' in html
     assert 'src="/static/js/auth.js"' in html
+    assert 'src="/static/js/app.js"' in html
 
 
 def test_api_calls_are_centralized_in_api_module() -> None:
@@ -84,14 +87,68 @@ def test_api_calls_are_centralized_in_api_module() -> None:
 
     api_source = (STATIC_ROOT / "js" / "api.js").read_text(encoding="utf-8")
     auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
 
     assert "fetch(" in api_source
     assert 'const API_BASE = "/api"' in api_source
     assert 'request("/auth/login"' in api_source
     assert 'request("/auth/register"' in api_source
     assert 'request("/health"' in api_source
+    assert 'request("/chat"' in api_source
     assert "fetch(" not in auth_source
+    assert "fetch(" not in app_source
     assert '"/api' not in auth_source
+    assert '"/api' not in app_source
+
+
+def test_chat_uses_exact_question_answer_and_latency_contract() -> None:
+    """채팅 요청·응답은 최신 팀 API 필드만 사용합니다."""
+
+    api_source = (STATIC_ROOT / "js" / "api.js").read_text(encoding="utf-8")
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+
+    assert "body: { question }" in api_source
+    assert "const { answer, latency_ms: latencyMs }" in api_source
+    assert "result.status !== 200" in api_source
+    chat_contract = api_source.split("export async function sendChat", 1)[1]
+    assert "|| !answer" not in chat_contract
+    assert "result.answer" in app_source
+    assert "result.latencyMs" in app_source
+    for legacy_field in ("reply", "message", "chat_id"):
+        assert f"result.{legacy_field}" not in app_source
+
+
+def test_messages_are_rendered_as_text_without_html_injection() -> None:
+    """사용자 질문과 AI 답변은 DOM textContent로만 표시합니다."""
+
+    scripts = "\n".join(
+        path.read_text(encoding="utf-8") for path in (STATIC_ROOT / "js").glob("*.js")
+    )
+
+    assert "content.textContent = text" in scripts
+    assert "innerHTML" not in scripts
+    assert "insertAdjacentHTML" not in scripts
+
+
+def test_question_validation_uses_raw_unicode_code_points() -> None:
+    """공백 여부와 원문 500자 상한을 서버 기준에 맞춰 검사합니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+
+    assert "Array.from(value).length" in app_source
+    assert "if (!question.trim())" in app_source
+    assert "questionLength(question) > MAX_QUESTION_LENGTH" in app_source
+    assert "sendChat(question, token, controller.signal)" in app_source
+
+
+def test_chat_response_is_guarded_by_current_session() -> None:
+    """로그아웃·사용자 전환 뒤 도착한 응답은 현재 화면에 그리지 않습니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+
+    assert "requestGeneration !== sessionGeneration" in app_source
+    assert app_source.count("token !== getAccessToken()") == 2
+    assert "activeChatController?.abort()" in app_source
 
 
 def test_login_stores_only_access_token_and_password_stays_ephemeral() -> None:

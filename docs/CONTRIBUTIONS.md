@@ -23,7 +23,8 @@
 | R05 | Cerhovah | 최근 문맥 Mock 채팅·저장·기록·표준 로그 | `2d0b576` | 전체 `pytest` → 93 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 | R06 | Cerhovah | 채팅 화면 기본 구조와 상태 영역 | `3ad456c` | frontend/bootstrap 17 passed, 전체 101 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 | R07 | Cerhovah | 로그인 모달·토큰 저장·API 통신 경계 | `262319d` | frontend 14 passed, 전체 107 passed, JS 구문 검사 PASS | 없음 | 로컬 기능 브랜치 | 예정 |
-| R08 | Cerhovah | 회원가입 모달·검증 오류·로그인 전환 | 다음 기록에서 갱신 | frontend/auth 44 passed, 전체 111 passed, JS 구문 검사 PASS | 없음 | 로컬 기능 브랜치 | 예정 |
+| R08 | Cerhovah | 회원가입 모달·검증 오류·로그인 전환 | `5515811` | frontend/auth 44 passed, 전체 111 passed, JS 구문 검사 PASS | 없음 | 로컬 기능 브랜치 | 예정 |
+| R09 | Cerhovah | 질문 전송·안전한 메시지 렌더링·첫 브라우저 E2E | 다음 기록에서 갱신 | frontend/chat 59 passed, 전체 115 passed, 실제 브라우저·DB·로그 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
 
 ## 팀 역할과 실제 이력
 
@@ -35,3 +36,5 @@
 | 차종민 | AI 파이프라인 | 미확인 | 미확인 | NEEDS_TEAM_REVIEW |
 
 개인 기준 구현의 커밋 수는 팀원 4명 각각의 10개 요건이나 실제 PR merge를 대체하지 않습니다. 원격 검증은 별도 승인 후 평가 대상 저장소·기준 SHA·최종 브랜치를 확정하여 수행합니다.
+
+기준 SHA 이후 본인 로컬 기능 커밋은 R08에서 10개가 되었습니다. 이는 개인 학습 저장소의 작업 이력이며 팀원별 10개 및 팀 PR 병합 증거와 구분합니다.
