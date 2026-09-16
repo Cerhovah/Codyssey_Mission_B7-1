@@ -52,10 +52,17 @@ async def open_database(settings: Settings) -> aiosqlite.Connection:
     path = database_path_from_url(settings.database_url)
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = await aiosqlite.connect(path)
-    connection.row_factory = aiosqlite.Row
-    await connection.execute("PRAGMA foreign_keys = ON")
-    await connection.execute("PRAGMA busy_timeout = 3000")
-    return connection
+    try:
+        connection.row_factory = aiosqlite.Row
+        await connection.execute("PRAGMA foreign_keys = ON")
+        await connection.execute("PRAGMA busy_timeout = 3000")
+        return connection
+    except BaseException:
+        try:
+            await connection.close()
+        except BaseException:
+            pass
+        raise
 
 
 @asynccontextmanager

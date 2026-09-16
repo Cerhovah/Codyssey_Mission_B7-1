@@ -31,7 +31,8 @@
 | R13 | Cerhovah | 로그아웃·사용자 전환·다중 탭 응답 격리 | `db33fd3` | frontend 30 passed, 전체 123 passed, 브라우저 A→B·늦은 401·두 탭 동기화 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
 | R14 | Cerhovah | 모바일 입력·키보드·IME·포커스 접근성 | `5d46119` | Node 15 passed, frontend 34 passed, 전체 127 passed, 360×640·XSS·키보드 브라우저 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
 | R15 | Cerhovah | 프론트 API·OpenAPI 회귀와 실행·이식 경계 문서 | `6733915` | Node 18 passed, frontend/contract 38 passed, 전체 131 passed, 새 사용자 브라우저 E2E | 없음 | 로컬 기능 브랜치 | 검토용 설명 작성·본인 확인 대기 |
-| R15 보강 | Cerhovah | health/login 정확한 200과 문서 endpoint별 계약 검사 | 다음 기록에서 갱신 | Node 18 passed, frontend/contract 39 passed, 전체 132 passed | 없음 | 로컬 기능 브랜치 | 검토용 설명 작성·본인 확인 대기 |
+| R15 보강 | Cerhovah | health/login 정확한 200과 문서 endpoint별 계약 검사 | `5885a19` | Node 18 passed, frontend/contract 39 passed, 전체 132 passed | 없음 | 로컬 기능 브랜치 | 검토용 설명 작성·본인 확인 대기 |
+| R15 이후 백엔드 보강 | Cerhovah | SQLite PRAGMA 초기화 실패·취소 시 연결 정리 | 다음 기록에서 갱신 | bootstrap 12 passed, 전체 135 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 
 ## 팀 역할과 실제 이력
 

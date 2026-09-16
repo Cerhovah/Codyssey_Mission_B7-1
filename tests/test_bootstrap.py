@@ -1,5 +1,6 @@
 """R02 서버 기동·설정·SQLite 초기화 회귀 테스트."""
 
+import asyncio
 from pathlib import Path
 
 import aiosqlite
@@ -8,7 +9,12 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app.config import Settings
-from app.database import database_connection, database_path_from_url, initialize_database
+from app.database import (
+    database_connection,
+    database_path_from_url,
+    initialize_database,
+    open_database,
+)
 from app.main import create_app
 
 
@@ -68,6 +74,74 @@ async def test_database_initialization_enables_wal_fk_and_index(
     assert foreign_key_row[0] == 1
     assert {row[0] for row in tables} >= {"users", "chat_logs"}
     assert "idx_chat_logs_user_id_id" in {row[0] for row in indexes}
+
+
+@pytest.mark.parametrize(
+    "error_type",
+    [aiosqlite.OperationalError, asyncio.CancelledError],
+    ids=["database-error", "cancelled"],
+)
+async def test_open_database_closes_connection_when_pragma_setup_fails(
+    test_settings: Settings,
+    monkeypatch: pytest.MonkeyPatch,
+    error_type: type[BaseException],
+) -> None:
+    """PRAGMA 적용 실패·취소가 생성된 연결을 남기지 않는지 확인합니다."""
+
+    class FailingConnection:
+        row_factory = None
+        closed = False
+
+        async def execute(self, _statement: str) -> None:
+            raise error_type("test-only pragma failure")
+
+        async def close(self) -> None:
+            self.closed = True
+
+    connection = FailingConnection()
+
+    async def fake_connect(_path: Path) -> FailingConnection:
+        return connection
+
+    monkeypatch.setattr(aiosqlite, "connect", fake_connect)
+
+    with pytest.raises(error_type):
+        await open_database(test_settings)
+
+    assert connection.closed is True
+
+
+async def test_open_database_preserves_setup_error_when_close_also_fails(
+    test_settings: Settings,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """정리 실패가 최초 PRAGMA 오류를 덮어쓰지 않는지 확인합니다."""
+
+    class SetupFailure(RuntimeError):
+        pass
+
+    class DoubleFailingConnection:
+        row_factory = None
+        close_attempted = False
+
+        async def execute(self, _statement: str) -> None:
+            raise SetupFailure("original setup failure")
+
+        async def close(self) -> None:
+            self.close_attempted = True
+            raise aiosqlite.OperationalError("secondary close failure")
+
+    connection = DoubleFailingConnection()
+
+    async def fake_connect(_path: Path) -> DoubleFailingConnection:
+        return connection
+
+    monkeypatch.setattr(aiosqlite, "connect", fake_connect)
+
+    with pytest.raises(SetupFailure, match="original setup failure"):
+        await open_database(test_settings)
+
+    assert connection.close_attempted is True
 
 
 async def test_reinitialization_preserves_existing_user(test_settings: Settings) -> None:

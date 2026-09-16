@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R15 성공 상태·문서 섹션 계약 보강
+최종 갱신: 2026-09-16 / R16 준비 전 SQLite 연결 정리 보강
 
 ## 네 가지 완료 축
 
@@ -162,3 +162,5 @@
 | R15 보강 | health/login의 유효 body + 잘못된 201 주입 | 두 함수 모두 `INVALID_CONTRACT`; 정확한 200만 허용 |
 | R15 보강 | api_spec 3.1~3.5 섹션별 대조 | endpoint별 path·method·성공/오류 status·요청/응답 필드·history 배열·Bearer를 OpenAPI와 별도 고정 |
 | R15 보강 | Node와 frontend/contract, 전체 pytest | Node 18 passed, contract 39 passed, 전체 132 passed, warning 2건 |
+| R15 이후 백엔드 보강 | `open_database` PRAGMA 오류·`CancelledError`·close 이중 실패 주입 | 연결 정리 시도와 최초 예외 원형 유지 확인 |
+| R15 이후 백엔드 보강 | bootstrap과 전체 pytest | bootstrap 12 passed, 전체 135 passed, warning 2건 |
