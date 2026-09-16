@@ -88,6 +88,7 @@ def test_api_calls_are_centralized_in_api_module() -> None:
     assert "fetch(" in api_source
     assert 'const API_BASE = "/api"' in api_source
     assert 'request("/auth/login"' in api_source
+    assert 'request("/auth/register"' in api_source
     assert 'request("/health"' in api_source
     assert "fetch(" not in auth_source
     assert '"/api' not in auth_source
@@ -144,6 +145,67 @@ def test_closing_login_cancels_stale_request_and_clears_password() -> None:
     cancel_block = cancel_block.split("function showLoginError", 1)[0]
     assert 'elements.loginPassword.value = ""' in cancel_block
     assert 'addEventListener("click", cancelLoginAttempt)' in auth_source
+
+
+def test_register_uses_exact_contract_and_returns_to_login() -> None:
+    """가입은 201과 username/password·message/username 계약만 사용합니다."""
+
+    html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
+    api_source = (STATIC_ROOT / "js" / "api.js").read_text(encoding="utf-8")
+    auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+
+    assert '<form id="register-form" class="auth-form" method="post" hidden>' in html
+    assert 'autocomplete="new-password"' in html
+    assert 'request("/auth/register"' in api_source
+    assert "result.status !== 201" in api_source
+    assert "username: credentials.username" in api_source
+    assert "password: credentials.password" in api_source
+    assert "const { message, username } = result.data || {}" in api_source
+    assert "showLoginView({ notice: result.message })" in auth_source
+    assert "elements.loginUsername.value = result.username" in auth_source
+
+
+def test_register_errors_stay_local_and_password_is_ephemeral() -> None:
+    """400·422 detail은 가입 폼에 표시하고 비밀번호는 저장하거나 전파하지 않습니다."""
+
+    auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+
+    register_block = auth_source.split("async function handleRegisterSubmit", 1)[1]
+    register_block = register_block.split("function renderAiMode", 1)[0]
+    assert "error instanceof ApiError ? error.message" in register_block
+    assert "showRegisterError(message)" in register_block
+    assert 'elements.registerPassword.value = ""' in register_block
+    assert "localStorage" not in register_block
+    assert auth_source.count("localStorage.setItem") == 1
+
+
+def test_register_request_is_cancelled_when_auth_view_changes() -> None:
+    """가입 모달 전환·닫기 뒤의 늦은 응답은 UI를 변경하지 않습니다."""
+
+    auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+
+    assert "activeRegisterController?.abort()" in auth_source
+    assert "register(credentials, controller.signal)" in auth_source
+    assert "activeRegisterController !== controller || controller.signal.aborted" in auth_source
+    assert "cancelRegisterAttempt()" in auth_source
+
+
+def test_stale_auth_errors_cannot_change_the_current_form() -> None:
+    """취소된 로그인·가입 오류도 현재 폼의 상태나 입력을 변경하지 않습니다."""
+
+    auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+    login_block = auth_source.split("async function handleLoginSubmit", 1)[1]
+    login_block = login_block.split("async function handleRegisterSubmit", 1)[0]
+    register_block = auth_source.split("async function handleRegisterSubmit", 1)[1]
+    register_block = register_block.split("function renderAiMode", 1)[0]
+
+    assert "activeLoginController !== controller" in login_block.split("} catch (error)", 1)[1]
+    assert "controller.signal.aborted" in login_block.split("} catch (error)", 1)[1]
+    assert "activeRegisterController !== controller" in register_block.split(
+        "} catch (error)",
+        1,
+    )[1]
+    assert "controller.signal.aborted" in register_block.split("} catch (error)", 1)[1]
 
 
 def test_optional_ai_mode_header_is_not_required_for_success() -> None:

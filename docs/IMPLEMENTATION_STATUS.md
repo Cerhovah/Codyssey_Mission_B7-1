@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R07 로그인 UI·API 경계 검증
+최종 갱신: 2026-09-16 / R08 회원가입 UI·API 경계 검증
 
 ## 네 가지 완료 축
 
@@ -118,3 +118,6 @@
 | R07 | Node ESM `--check`로 `static/js/api.js`, `static/js/auth.js` 검사 | 두 파일 모두 구문 검사 PASS |
 | R07 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py -q` | 14 passed; 로그인 계약·fetch 중앙화·토큰 저장·선택 헤더 비의존·취소 요청 무효화 검증 |
 | R07 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 107 passed, dependency deprecation warning 2건 |
+| R08 | Node ESM `--check`로 `static/js/api.js`, `static/js/auth.js` 검사 | 두 파일 모두 구문 검사 PASS |
+| R08 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py tests/test_auth.py -q` | 44 passed; 가입 201/400/422 서버 계약·UI 연결·취소 오류 격리 검증 |
+| R08 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 111 passed, dependency deprecation warning 2건 |
