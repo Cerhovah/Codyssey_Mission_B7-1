@@ -9,6 +9,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import Settings, get_settings
 from app.database import initialize_database
+from app.errors import register_error_handlers
+from app.routers.auth_router import router as auth_router
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -30,6 +32,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version="1.0.0",
         lifespan=lifespan,
     )
+    register_error_handlers(application)
+    application.include_router(auth_router)
 
     @application.get("/", include_in_schema=False)
     async def serve_index() -> Response:

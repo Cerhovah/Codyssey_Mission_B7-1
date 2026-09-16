@@ -54,10 +54,10 @@
 | ID | 상태 | 비고 |
 |---|---|---|
 | T01 | NOT_RUN | 기동·정적·health |
-| T02 | NOT_RUN | 가입·중복 |
-| T03 | NOT_RUN | username 경계 |
-| T04 | NOT_RUN | password 경계 |
-| T05 | NOT_RUN | bcrypt_sha256 긴 입력·72바이트 경계 |
+| T02 | PASS | 가입 201과 중복 400 응답·DB 저장 검증 |
+| T03 | PASS | 공백/2자/51자/trim/내부공백·대소문자 보존 검증 |
+| T04 | PASS | 3/4/100/101자·공백·100자 한글 경계 검증 |
+| T05 | PASS | 100자 ASCII·한글과 72바이트 이후 차이 검증 |
 | T06 | NOT_RUN | 로그인 |
 | T07 | NOT_RUN | JWT 위조·만료·claims |
 | T08 | NOT_RUN | 보호 API 인증 |
@@ -108,3 +108,4 @@
 | R02 | 최신 bcrypt 5.0.0 해시 smoke | Passlib backend의 72바이트 탐지 단계에서 실패; 호환 조합 검증 필요 확인 |
 | R02 | bcrypt 4.0.1 재설치 후 bcrypt_sha256 smoke | 4자·100자 ASCII·100자 한글·72바이트 이후 차이 모두 PASS |
 | R02 | `.venv/Scripts/python.exe -m pytest tests/test_bootstrap.py -q` | 8 passed, dependency deprecation warning 2건 |
+| R03 | `.venv/Scripts/python.exe -m pytest tests/test_auth.py -q` | 22 passed, dependency deprecation warning 2건 |

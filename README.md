@@ -26,6 +26,8 @@
 - JSON 오류는 항상 `{"detail":"한국어 문자열"}`
 - JWT 1440분, AI 제한 8초, 질문 원문 최대 500자
 
+비밀번호는 4~100자 계약과 원시 bcrypt의 72바이트 경계를 함께 지키기 위해 Passlib의 `bcrypt_sha256` v2로 저장합니다. 입력을 자르거나 단순 SHA-256으로 저장하지 않습니다. 이는 일반 bcrypt 포맷과 다르므로 기존 팀 DB에 자동 적용하지 않습니다.
+
 외부 계약의 기준은 `docs/api_spec.md`, 충돌 결정은 `docs/PROJECT_PLAN.md`, 구현 상세는 `docs/IMPLEMENTATION_SPEC.md`입니다. 프론트는 같은 origin의 `/api/...`만 호출하고 Python 모듈·서버 템플릿·`.env`에 직접 의존하지 않습니다. 선택 응답 헤더 `X-AI-Mode`가 없어도 핵심 기능은 동작해야 합니다.
 
 ## 예정 구조
@@ -56,7 +58,7 @@ FastAPI는 `/`에서 `static/index.html`, `/static/`에서 필요한 정적 자�
 
 ```powershell
 py -3.10 -m venv .venv
-.venv/Scripts/python.exe -m pip install -r requirements.txt
+.venv/Scripts/python.exe -m pip install -r requirements.txt -c constraints.txt
 .venv/Scripts/python.exe scripts/init_env.py --mode mock
 .venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 .venv/Scripts/python.exe -m pytest
@@ -64,13 +66,15 @@ py -3.10 -m venv .venv
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip install -r requirements.txt -c constraints.txt
 .venv/bin/python scripts/init_env.py --mode mock
 .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 .venv/bin/python -m pytest
 ```
 
 브라우저 검증 주소는 `http://127.0.0.1:8000`입니다. HTML 파일을 직접 여는 방식은 지원하지 않습니다.
+
+`constraints.txt`는 Windows의 작업공간 Python 3.12.14에서 실제 설치·`pip check`·해시 smoke를 통과한 조합입니다. 특히 `passlib 1.7.4`와 최신 `bcrypt 5.0.0` 조합은 이 환경의 backend 탐지에서 실패하여, 긴 입력 구분 테스트를 통과한 `bcrypt 4.0.1`을 고정했습니다. 배포 Python/OS에서는 다시 설치 검증해야 합니다.
 
 ## 문서와 증빙
 

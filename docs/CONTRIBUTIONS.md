@@ -14,9 +14,10 @@
 
 | R | 작성자 | 작업 | SHA | 검증 명령·결과 | PR URL | 대상 브랜치 반영 | 직접 설명 |
 |---|---|---|---|---|---|---|---|
-| R01 | Cerhovah | 계약·ignore·증빙 기반 구성 | `617cff6` | ignore 대상·추적 가능 예시·비밀 패턴 검사 | 없음 | 로컬 기능 브랜치 | 예정 |
+| R01 | Cerhovah | 계약·ignore·증빙 기반 구성 | `617cff6` | ignore 15/15·추적 가능 예시·비밀 패턴 검사 | 없음 | 로컬 기능 브랜치 | 예정 |
 | R01 보정 | Cerhovah | S02/S04/S05/S06/S07/S09~S11 원문과 조정 복원 | `67bcb89` | 원문 prefix·모델·C05 검사, 11개 원문 해시 일치 | 없음 | 로컬 기능 브랜치 | 예정 |
-| R02 | Cerhovah | FastAPI 기동과 SQLite 초기화 | 다음 기록에서 갱신 | `pytest tests/test_bootstrap.py -q` → 8 passed | 없음 | 로컬 기능 브랜치 | 예정 |
+| R02 | Cerhovah | FastAPI 기동과 SQLite 초기화 | `bc1091e` | `pytest tests/test_bootstrap.py -q` → 8 passed | 없음 | 로컬 기능 브랜치 | 예정 |
+| R03 | Cerhovah | 회원가입과 비밀번호 검증 | 다음 기록에서 갱신 | `pytest tests/test_auth.py -q` → 22 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 
 ## 팀 역할과 실제 이력
 

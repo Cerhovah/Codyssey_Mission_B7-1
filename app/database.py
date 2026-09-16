@@ -7,6 +7,7 @@ from pathlib import Path
 import aiosqlite
 
 from app.config import Settings
+from app.models import UserRow
 
 
 SCHEMA_SQL = """
@@ -29,6 +30,10 @@ CREATE TABLE IF NOT EXISTS chat_logs (
 CREATE INDEX IF NOT EXISTS idx_chat_logs_user_id_id
 ON chat_logs(user_id, id);
 """
+
+
+class DuplicateUsernameError(Exception):
+    """동일한 아이디의 등록 경쟁을 안전하게 구분합니다."""
 
 
 def database_path_from_url(database_url: str) -> Path:
@@ -71,3 +76,57 @@ async def initialize_database(settings: Settings) -> None:
         await connection.execute("PRAGMA journal_mode = WAL")
         await connection.executescript(SCHEMA_SQL)
         await connection.commit()
+
+
+async def create_user(
+    settings: Settings,
+    username: str,
+    hashed_password: str,
+) -> UserRow:
+    """사용자를 저장하고 UNIQUE 충돌과 일반 DB 오류를 구분합니다."""
+
+    async with database_connection(settings) as connection:
+        try:
+            cursor = await connection.execute(
+                "INSERT INTO users (username, hashed_password) VALUES (?, ?)",
+                (username, hashed_password),
+            )
+            await connection.commit()
+        except aiosqlite.IntegrityError as exc:
+            await connection.rollback()
+            raise DuplicateUsernameError from exc
+        except aiosqlite.Error:
+            await connection.rollback()
+            raise
+
+        row = await (
+            await connection.execute(
+                """
+                SELECT id, username, hashed_password, created_at
+                FROM users
+                WHERE id = ?
+                """,
+                (cursor.lastrowid,),
+            )
+        ).fetchone()
+
+    if row is None:
+        raise aiosqlite.DatabaseError("저장된 사용자 행을 다시 찾을 수 없습니다.")
+    return UserRow(**dict(row))
+
+
+async def get_user_by_username(settings: Settings, username: str) -> UserRow | None:
+    """정확한 대소문자의 아이디로 사용자 한 명을 조회합니다."""
+
+    async with database_connection(settings) as connection:
+        row = await (
+            await connection.execute(
+                """
+                SELECT id, username, hashed_password, created_at
+                FROM users
+                WHERE username = ?
+                """,
+                (username,),
+            )
+        ).fetchone()
+    return UserRow(**dict(row)) if row is not None else None
