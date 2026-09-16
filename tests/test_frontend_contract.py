@@ -248,6 +248,40 @@ def test_failed_chat_keeps_question_for_manual_retry() -> None:
     assert 'elements.questionInput.value = ""' not in catch_block
 
 
+def test_session_change_clears_private_draft_counter_and_toast() -> None:
+    """로그아웃·사용자 전환에서 이전 사용자의 임시 UI 상태를 제거합니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    auth_change = app_source.split("function handleAuthChange", 1)[1]
+    auth_change = auth_change.split("function initializeApp", 1)[0]
+
+    assert 'elements.questionInput.value = ""' in auth_change
+    assert "elements.toastRegion.replaceChildren()" in auth_change
+    assert "updateCounter()" in auth_change
+    assert "activeChatController?.abort()" in auth_change
+    assert "activeHistoryController?.abort()" in auth_change
+    assert "sessionGeneration += 1" in auth_change
+
+
+def test_storage_token_changes_synchronize_tabs_without_write_loop() -> None:
+    """다른 탭의 로그인·로그아웃을 반영하고 진행 중 인증 요청을 취소합니다."""
+
+    auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+    storage_block = auth_source.split("function handleTokenStorageChange", 1)[1]
+    storage_block = storage_block.split("function handleLogout", 1)[0]
+
+    assert 'window.addEventListener("storage", handleTokenStorageChange)' in auth_source
+    assert "event.storageArea !== localStorage" in storage_block
+    assert "event.key !== TOKEN_KEY && event.key !== null" in storage_block
+    assert "clearAuthFormState()" in storage_block
+    assert "renderSession(token)" in storage_block
+    assert "announceAuthChange(Boolean(token))" in storage_block
+    assert "setToken(" not in storage_block
+    assert "clearSession(" not in storage_block
+    assert "activeLoginController?.abort()" in auth_source
+    assert "activeRegisterController?.abort()" in auth_source
+
+
 def test_login_stores_only_access_token_and_password_stays_ephemeral() -> None:
     """비밀번호·사용자 입력을 브라우저 저장소에 기록하지 않습니다."""
 

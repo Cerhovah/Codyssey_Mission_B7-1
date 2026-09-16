@@ -1,12 +1,12 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R12 로딩·중복 전송·오류 복구 검증
+최종 갱신: 2026-09-16 / R13 로그아웃·사용자 전환 응답 격리 검증
 
 ## 네 가지 완료 축
 
 | 축 | 상태 | 현재 근거 / 다음 조건 |
 |---|---|---|
-| LOCAL_MINIMUM | NOT_RUN | 코드·의존성·로컬 E2E 구현 전 |
+| LOCAL_MINIMUM | NOT_RUN | R01~R13 구현·로컬 브라우저 E2E 진행; R14~R20과 최종 로컬 게이트 남음 |
 | REAL_AI | BLOCKED_EXTERNAL | 실제 코디세이 공급자 URL·모델·키·사용 권한·유료 호출 승인 필요 |
 | PUBLIC_URL | BLOCKED_EXTERNAL | AWS 계정·리전·비용·보안그룹·TLS/HTTP 위험·외부 공개 승인 필요 |
 | TEAM_HISTORY | NEEDS_TEAM_REVIEW | 평가 저장소의 팀원별 SHA·PR·최종 브랜치 범위 미확인 |
@@ -79,7 +79,7 @@
 | T24 | NOT_RUN | OpenAPI·문서·스키마 |
 | T25 | PASS | 로컬 브라우저 가입 → 로그인 → 질문 → 답변 뒤 로그아웃·재로그인과 저장 기록 복원 |
 | T26 | PASS | 느린 성공·504·JSON 500·비JSON 500에서 로딩 차단·입력 보존·폼 복구와 후속 정상 전송 |
-| T27 | NOT_RUN | 늦은 응답 사용자 격리 |
+| T27 | PASS | A의 느린 성공·늦은 401 중 로그아웃→B 로그인 뒤 A 응답 비표시·B 세션 유지, 두 탭 전환 동기화 |
 | T28 | NOT_RUN | XSS·모바일·키보드·IME |
 | T29 | NOT_RUN | SQL 확인 도구 |
 | T30 | NOT_RUN | 새 가상환경 재현 |
@@ -142,3 +142,8 @@
 | R12 | 같은 브라우저에서 강제 504·JSON 500·비JSON 500 | 서버 detail 또는 안전 문구 표시, 입력 보존, 원문 오류 본문 비노출, 각 실패 뒤 폼 복구 |
 | R12 | 오류 뒤 정상 질문 전송과 새로고침 | 후속 200 성공, 실패 질문은 저장되지 않고 성공 기록만 복원, console warning/error 0건 |
 | R12 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 121 passed, dependency deprecation warning 2건 |
+| R13 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py -q` | 30 passed; 초안·counter·toast 제거와 storage event 무루프 동기화 검증 |
+| R13 | A의 3초 지연 채팅 중 로그아웃 → B 로그인 | 서버는 A 기록을 완료했지만 B 화면에는 A 질문·답변이 없고 B 기록·token·폼 상태 유지 |
+| R13 | A의 지연 401 중 로그아웃 → B 로그인 | 응답 시점 이후에도 B 로그인 유지, 만료 모달·A 오류 비표시, `aria-busy=false` 확인 |
+| R13 | 두 로컬 브라우저 탭에서 B 로그아웃 → A 로그인 | 첫 탭도 즉시 로그아웃 초기화 뒤 A 기록만 재조회, 두 탭 console warning/error 0건 |
+| R13 | Node API 테스트와 전체 `.venv/Scripts/python.exe -m pytest -q` | Node 10 passed, 전체 123 passed, dependency deprecation warning 2건 |
