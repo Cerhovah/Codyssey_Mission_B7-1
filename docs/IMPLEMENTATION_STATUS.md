@@ -1,12 +1,12 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R16 실제 AI adapter 가짜 transport 검증
+최종 갱신: 2026-09-16 / R17 실제 SQLite 실패·rollback·로그 복구 검증
 
 ## 네 가지 완료 축
 
 | 축 | 상태 | 현재 근거 / 다음 조건 |
 |---|---|---|
-| LOCAL_MINIMUM | NOT_RUN | R01~R16 구현·프론트 통합 회귀 완료; R17~R20과 최종 로컬 게이트 남음 |
+| LOCAL_MINIMUM | NOT_RUN | R01~R17 구현·프론트 통합 회귀 완료; R18~R20과 최종 로컬 게이트 남음 |
 | REAL_AI | BLOCKED_EXTERNAL | 실제 코디세이 공급자 URL·모델·키·사용 권한·유료 호출 승인 필요 |
 | PUBLIC_URL | BLOCKED_EXTERNAL | AWS 계정·리전·비용·보안그룹·TLS/HTTP 위험·외부 공개 승인 필요 |
 | TEAM_HISTORY | NEEDS_TEAM_REVIEW | 평가 저장소의 팀원별 SHA·PR·최종 브랜치 범위 미확인 |
@@ -32,7 +32,7 @@
 | M05 | 최근 사용자 문맥 | PASS | 같은 사용자의 최근 5쌍·시간순 12 messages와 두 턴 Mock 확인 |
 | M06 | 대화 DB 누적·영속 | PASS | commit 뒤 200, 앱 수명주기 재시작 뒤 기록 보존 검증 |
 | M07 | 사용자별 기록 조회 | PASS | 인증 사용자 배열·id 오름차순·A/B 격리 검증 |
-| M08 | 요청·AI·DB 성공/실패 로그 | PASS | 6개 이벤트의 성공·AI 실패·DB 실패 실제 경로와 비밀 비노출 검증 |
+| M08 | 요청·AI·DB 성공/실패 로그 | PASS | 6개 이벤트와 실제 SQLite INSERT·COMMIT 실패 경로, DB 원문·토큰·질문 비노출 검증 |
 | M09 | AI 실패/timeout 복구 | PASS | HTTPX/전체 await timeout 504 뒤 같은 real client·transport의 다음 요청 성공 |
 | M10 | 입력 검증 | PASS | 공백 400, 원문 501자·padded 502자 422, Unicode 500자 검증 |
 | M11 | 외부 URL | NOT_RUN | 외부 조건은 상단 PUBLIC_URL에 별도 기록; 배포·공개 승인 필요 |
@@ -72,8 +72,8 @@
 | T17 | PASS | 가짜 transport로 `/v1/chat/completions`·Bearer·model/messages/stream·파싱·lifespan client 검증; 외부 실호출 아님 |
 | T18 | PASS | HTTPX timeout과 `wait_for` 전체 제한을 각각 504로 확인, 취소·미저장·같은 client 후속 복구 |
 | T19 | PASS | 공급자 401/403/429/500·네트워크·비JSON·잘못된 응답을 분류된 504로 확인, 무재시도·무Mock fallback |
-| T20 | NOT_RUN | DB 실패·rollback |
-| T21 | PASS | 성공 4개+AI/DB 실패 2개 이벤트와 토큰·암호·질문 비노출 |
+| T20 | PASS | 실제 SQLite AFTER INSERT 실패와 미커밋 COMMIT 실패에서 pending 행·활성 transaction → rollback → 외부 0행·후속 200 확인 |
+| T21 | PASS | 성공 4개+AI/DB 실패 2개 이벤트, 실제 DB 실패 분류와 토큰·암호·질문·원문 비노출 |
 | T22 | PASS | ignore 15/15과 `/.env`·DB·로그·Git·README HTTP 404 검증 |
 | T23 | PASS | 개발/test/production의 auto·mock·real 양성/거부 행렬, Mock transport 0회와 real 실패 무fallback |
 | T24 | PASS | 실제 OpenAPI·Pydantic schema·api_spec·api.js의 5경로, method, status, 필드, 배열, 공통 오류 대조 |
@@ -168,3 +168,7 @@
 | R16 | HTTPX `MockTransport` real 경로 | 공급자 요청은 모두 `provider.test` 가짜 전송에서 처리, 자동 재시도·Mock fallback·외부 네트워크 호출 0회 |
 | R16 | 공급자 base 보안 설정 | 절대 HTTPS·host 필수, 사용자정보·query·fragment와 HTTP/상대주소 기동 거부, 설정 오류 입력값 비반사 |
 | R16 | 전체 Python/Node 회귀 | Python 178 passed, dependency warning 2건; Node 18 passed |
+| R17 | 실제 SQLite INSERT 실패 | AFTER INSERT trigger의 `RAISE(FAIL)` 직후 같은 연결의 pending 행·활성 transaction 확인, 실제 rollback 뒤 0행 |
+| R17 | 실제 SQLite COMMIT 실패 | INSERT·SELECT 완료 뒤 미커밋 행을 확인하고 commit 1회 실패 주입, rollback 전후 `in_transaction` true→false |
+| R17 | 라우터·로그·복구 | 두 경로 모두 정확한 500/detail·`db_save_failed error=database_error` 1회·비밀 비반사, 같은 앱 후속 200·정상 1행 |
+| R17 | 전체 Python 회귀 | 180 passed, dependency warning 2건 |
