@@ -230,6 +230,7 @@ def test_chat_loading_blocks_duplicate_submit_and_recovers_in_finally() -> None:
     assert "setSending(true)" in submit_block
     assert "} finally {" in submit_block
     assert "setSending(false)" in submit_block
+    assert "elements.questionInput.focus()" in submit_block
     assert 'elements.chatForm.setAttribute("aria-busy", String(busy))' in app_source
     assert 'elements.messageList.setAttribute("aria-busy", String(busy))' in app_source
     assert 'elements.sendButton.textContent = sending' in app_source
@@ -280,6 +281,74 @@ def test_storage_token_changes_synchronize_tabs_without_write_loop() -> None:
     assert "clearSession(" not in storage_block
     assert "activeLoginController?.abort()" in auth_source
     assert "activeRegisterController?.abort()" in auth_source
+
+
+def test_enter_shift_enter_and_ime_have_distinct_paths() -> None:
+    """Enter만 전송하고 Shift+Enter와 한글 조합 중 Enter는 입력에 남깁니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    keyboard_source = (STATIC_ROOT / "js" / "keyboard.js").read_text(encoding="utf-8")
+    key_block = app_source.split("function handleQuestionKeydown", 1)[1]
+    key_block = key_block.split("async function loadChatHistory", 1)[0]
+
+    assert 'import { shouldSubmitQuestion } from "./keyboard.js"' in app_source
+    assert 'event.key === "Enter"' in keyboard_source
+    assert "!event.shiftKey" in keyboard_source
+    assert "!event.isComposing" in keyboard_source
+    assert "event.keyCode !== 229" in keyboard_source
+    assert "if (!shouldSubmitQuestion(event))" in key_block
+    assert "event.preventDefault()" in key_block
+    assert "if (!sending && !loadingHistory)" in key_block
+    assert "elements.chatForm.requestSubmit()" in key_block
+    assert 'addEventListener("keydown", handleQuestionKeydown)' in app_source
+
+
+def test_modal_keyboard_boundary_and_error_associations_are_present() -> None:
+    """모달 포커스를 가두고 Escape 닫기와 입력별 오류 연결을 제공합니다."""
+
+    html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
+    auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+    modal_block = auth_source.split("function handleModalKeydown", 1)[1]
+    modal_block = modal_block.split("async function handleLoginSubmit", 1)[0]
+
+    assert html.count('aria-describedby="login-error"') == 2
+    assert html.count('aria-describedby="register-error"') == 2
+    assert 'event.key === "Escape"' in modal_block
+    assert 'event.key !== "Tab"' in modal_block
+    assert "document.activeElement === first" in modal_block
+    assert "document.activeElement === last" in modal_block
+    assert 'elements.modal.addEventListener("keydown", handleModalKeydown)' in auth_source
+    assert 'setAttribute("aria-invalid", "true")' in auth_source
+    assert 'setAttribute("aria-invalid", "false")' in auth_source
+
+
+def test_mobile_css_keeps_controls_scrollable_and_focus_visible() -> None:
+    """좁은 화면과 키보드 탐색에 필요한 최소 CSS 경계를 고정합니다."""
+
+    css = (STATIC_ROOT / "css" / "style.css").read_text(encoding="utf-8")
+
+    assert "@media (max-width: 680px)" in css
+    assert "@media (max-width: 420px)" in css
+    assert "max-height: calc(100dvh - 40px)" in css
+    assert "overflow-y: auto" in css
+    assert ".button:focus-visible" in css
+    assert "min-height: 44px" in css
+    assert "max-height: 34dvh" in css
+    assert "height: min(760px, calc(100vh - 136px))" in css
+    assert "height: min(760px, calc(100dvh - 136px))" in css
+
+
+def test_question_counter_is_announced_and_marks_over_limit_input() -> None:
+    """질문 길이 상태를 입력과 연결하고 초과 여부를 보조기술에 알립니다."""
+
+    html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    css = (STATIC_ROOT / "css" / "style.css").read_text(encoding="utf-8")
+
+    assert 'aria-describedby="question-counter"' in html
+    assert 'aria-invalid="false"' in html
+    assert 'setAttribute("aria-invalid", String(overLimit))' in app_source
+    assert ".question-counter.is-over-limit" in css
 
 
 def test_login_stores_only_access_token_and_password_stays_ephemeral() -> None:
