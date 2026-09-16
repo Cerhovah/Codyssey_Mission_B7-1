@@ -9,6 +9,7 @@ import re
 from threading import Event
 
 import aiosqlite
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -357,7 +358,9 @@ def test_context_contains_only_latest_five_pairs_in_time_order(
         *,
         request_id: str,
         settings: Settings,
+        http_client: httpx.AsyncClient,
     ) -> AIResult:
+        del http_client
         captured["messages"] = messages
         captured["request_id"] = request_id
         captured["mode"] = settings.resolved_ai_mode
@@ -628,8 +631,9 @@ def test_same_user_concurrent_turns_are_serialized(
         *,
         request_id: str,
         settings: Settings,
+        http_client: httpx.AsyncClient,
     ) -> AIResult:
-        del request_id, settings
+        del request_id, settings, http_client
         question = [item["content"] for item in messages if item["role"] == "user"][-1]
         if question == "먼저 도착":
             first_ai_started.set()

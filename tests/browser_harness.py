@@ -3,6 +3,7 @@
 import asyncio
 
 from fastapi import Request
+import httpx
 from starlette.responses import PlainTextResponse
 
 from app.ai_service import AIResult, AITimeoutError, generate_ai_response as real_generate
@@ -16,6 +17,7 @@ async def controlled_generate(
     *,
     request_id: str,
     settings,
+    http_client: httpx.AsyncClient,
 ) -> AIResult:
     """특정 테스트 질문에만 지연·timeout을 주고 나머지는 기존 Mock을 사용합니다."""
 
@@ -33,6 +35,7 @@ async def controlled_generate(
         messages,
         request_id=request_id,
         settings=settings,
+        http_client=http_client,
     )
 
 

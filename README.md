@@ -11,7 +11,7 @@
 - `PUBLIC_URL`: BLOCKED_EXTERNAL — AWS/비용/외부 공개 승인이 필요합니다.
 - `TEAM_HISTORY`: NEEDS_TEAM_REVIEW — 개인 저장소 이력은 팀 4명 기여·PR 증거를 대신하지 않습니다.
 
-현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. 실제 AI adapter, DB 장애 실주입, 운영 확인 도구와 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
+현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. OpenAI 호환 AI adapter는 가짜 HTTP transport로 계약·timeout·오류 경로를 검증했지만 실제 공급자 호출은 승인 대기입니다. DB 장애 실주입, 운영 확인 도구와 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
 
 ## 문제와 사용자
 
@@ -34,7 +34,7 @@
 
 외부 계약의 기준은 `docs/api_spec.md`, 충돌 결정은 `docs/PROJECT_PLAN.md`, 구현 상세는 `docs/IMPLEMENTATION_SPEC.md`입니다. 프론트는 같은 origin의 `/api/...`만 호출하고 Python 모듈·서버 템플릿·`.env`에 직접 의존하지 않습니다. 선택 응답 헤더 `X-AI-Mode`가 없어도 핵심 기능은 동작해야 합니다.
 
-## 예정 구조
+## 구현 구조
 
 ```text
 브라우저 static/ → FastAPI /api → 인증/JWT → AI adapter 또는 Mock
@@ -43,7 +43,7 @@
 
 FastAPI는 `/`에서 `static/index.html`, `/static/`에서 필요한 정적 자원만 제공합니다. 저장소 전체나 `.env`, DB, 로그는 정적으로 노출하지 않습니다.
 
-개발·테스트의 `AI_MODE=mock`은 외부 HTTP를 전혀 호출하지 않고 `[Mock]` 표식이 있는 결정적 응답을 반환하지만, 인증·문맥 조회·DB commit은 실제 경로를 사용합니다. `AI_MODE=real`에서 키가 없으면 기동을 거부하며, 키가 있어도 R16 실제 adapter가 검증되기 전에는 Mock으로 자동 성공 처리하지 않습니다.
+개발·테스트의 `AI_MODE=mock`은 외부 HTTP를 전혀 호출하지 않고 `[Mock]` 표식이 있는 결정적 응답을 반환하지만, 인증·문맥 조회·DB commit은 실제 경로를 사용합니다. `AI_MODE=real`에서 키가 없으면 기동을 거부합니다. real 경로는 설정한 절대 HTTPS base의 `/chat/completions`를 한 번 호출하며 timeout·공급자·응답 오류를 504로 처리하고 Mock으로 자동 전환하지 않습니다. 이 경로는 가짜 transport로만 검증했으며 실제 공급자 계약·키·모델은 아직 확인하지 않았습니다.
 
 같은 사용자의 동시 채팅은 단일 서버 프로세스 안에서 사용자별 turn lock으로 직렬화합니다. 문맥 조회 뒤 AI를 기다리는 동안 SQLite 쓰기 트랜잭션은 열지 않으며, 배포는 명세대로 Uvicorn 단일 worker를 전제로 합니다. 다중 worker/다중 인스턴스에는 별도의 분산 순서 제어가 필요합니다.
 

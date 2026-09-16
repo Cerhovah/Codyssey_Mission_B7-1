@@ -128,6 +128,7 @@ async def chat(
             messages,
             request_id=request_id,
             settings=settings,
+            http_client=request.app.state.ai_http_client,
         )
     except (AITimeoutError, asyncio.TimeoutError) as exc:
         log_ai_call_failed(request_id, "timeout")
@@ -136,7 +137,7 @@ async def chat(
             detail="현재 AI 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.",
         ) from exc
     except AIServiceError as exc:
-        log_ai_call_failed(request_id, "ai_service_error")
+        log_ai_call_failed(request_id, exc.error_code)
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="AI 응답을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.",

@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AnyHttpUrl, Field, TypeAdapter, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,6 +17,7 @@ PLACEHOLDER_API_KEYS = {
     "change-me",
     "changeme",
 }
+AI_BASE_URL_ADAPTER = TypeAdapter(AnyHttpUrl)
 
 
 class Settings(BaseSettings):
@@ -64,6 +65,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
         populate_by_name=True,
+        hide_input_in_errors=True,
     )
 
     @field_validator("secret_key")
@@ -96,14 +98,37 @@ class Settings(BaseSettings):
             raise ValueError("DATABASE_URL은 sqlite:/// 경로여야 합니다.")
         return value
 
-    @field_validator("codessey_api_base", "ai_model_name")
+    @field_validator("codessey_api_base")
+    @classmethod
+    def validate_ai_base_url(cls, value: str) -> str:
+        """키와 대화가 나갈 공급자 주소를 안전한 절대 HTTPS URL로 제한합니다."""
+
+        normalized = value.strip()
+        try:
+            parsed = AI_BASE_URL_ADAPTER.validate_python(normalized)
+        except ValidationError as exc:
+            raise ValueError("CODESSEY_API_BASE는 유효한 HTTPS URL이어야 합니다.") from exc
+        if (
+            parsed.scheme != "https"
+            or not parsed.host
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.query is not None
+            or parsed.fragment is not None
+        ):
+            raise ValueError(
+                "CODESSEY_API_BASE는 사용자정보·query·fragment가 없는 HTTPS URL이어야 합니다."
+            )
+        return normalized
+
+    @field_validator("ai_model_name")
     @classmethod
     def validate_non_empty_text(cls, value: str) -> str:
-        """외부 호출 설정의 빈 문자열을 거부합니다."""
+        """외부 호출 모델 이름의 빈 문자열을 거부합니다."""
 
         normalized = value.strip()
         if not normalized:
-            raise ValueError("AI 공급자 주소와 모델 이름은 비어 있을 수 없습니다.")
+            raise ValueError("AI 모델 이름은 비어 있을 수 없습니다.")
         return normalized
 
     @model_validator(mode="after")

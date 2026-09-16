@@ -7,7 +7,9 @@ from pathlib import Path
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+import httpx
 
+from app.ai_service import create_ai_http_client
 from app.config import Settings, get_settings
 from app.database import initialize_database
 from app.errors import register_error_handlers
@@ -23,7 +25,11 @@ STATIC_DIR = PROJECT_ROOT / "static"
 LOG_PATH = PROJECT_ROOT / "logs" / "app.log"
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    ai_transport: httpx.AsyncBaseTransport | None = None,
+) -> FastAPI:
     """설정을 주입할 수 있는 FastAPI 애플리케이션을 만듭니다."""
 
     @asynccontextmanager
@@ -33,7 +39,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         application.state.chat_turn_locks = {}
         application.state.chat_turn_locks_guard = asyncio.Lock()
         await initialize_database(active_settings)
-        yield
+        async with create_ai_http_client(
+            active_settings,
+            transport=ai_transport,
+        ) as ai_http_client:
+            application.state.ai_http_client = ai_http_client
+            yield
 
     application = FastAPI(
         title="AI Assistant",
