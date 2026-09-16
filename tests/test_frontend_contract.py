@@ -197,6 +197,28 @@ def test_history_loading_blocks_chat_and_ignores_stale_sessions() -> None:
     assert 'title: "대화 기록을 불러오지 못했습니다."' in history_block
 
 
+def test_only_protected_api_unauthorized_clears_the_session() -> None:
+    """chat/history 401만 세션을 지우고 로그인 401은 모달 오류로 남깁니다."""
+
+    app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    auth_source = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+    login_block = auth_source.split("async function handleLoginSubmit", 1)[1]
+    login_block = login_block.split("async function handleRegisterSubmit", 1)[0]
+
+    assert "error.status !== 401" in app_source
+    assert "clearSession()" in app_source
+    assert 'openLoginModal("로그인이 만료되었습니다. 다시 로그인해 주세요.")' in app_source
+    assert "clearSession()" not in login_block
+    assert "showLoginError(message)" in login_block
+    assert 'elements.authNotice.textContent = ""' in login_block
+
+    chat_catch = app_source.split("async function handleChatSubmit", 1)[1]
+    chat_catch = chat_catch.split("async function loadChatHistory", 1)[0]
+    assert chat_catch.index("token !== getAccessToken()") < chat_catch.index(
+        "handleProtectedUnauthorized(error)"
+    )
+
+
 def test_login_stores_only_access_token_and_password_stays_ephemeral() -> None:
     """비밀번호·사용자 입력을 브라우저 저장소에 기록하지 않습니다."""
 

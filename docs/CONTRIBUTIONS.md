@@ -25,7 +25,8 @@
 | R07 | Cerhovah | 로그인 모달·토큰 저장·API 통신 경계 | `262319d` | frontend 14 passed, 전체 107 passed, JS 구문 검사 PASS | 없음 | 로컬 기능 브랜치 | 예정 |
 | R08 | Cerhovah | 회원가입 모달·검증 오류·로그인 전환 | `5515811` | frontend/auth 44 passed, 전체 111 passed, JS 구문 검사 PASS | 없음 | 로컬 기능 브랜치 | 예정 |
 | R09 | Cerhovah | 질문 전송·안전한 메시지 렌더링·첫 브라우저 E2E | `cacad06` | frontend/chat 59 passed, 전체 115 passed, 실제 브라우저·DB·로그 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
-| R10 | Cerhovah | 내 대화 이력 조회·빈 목록·새로고침 복원 | 다음 기록에서 갱신 | frontend/chat 62 passed, 전체 118 passed, 브라우저 재로그인·새로고침 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
+| R10 | Cerhovah | 내 대화 이력 조회·빈 목록·새로고침 복원 | `4c15d37` | frontend/chat 62 passed, 전체 118 passed, 브라우저 재로그인·새로고침 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
+| R11 | Cerhovah | 공통 API 오류·비JSON·보호 API 401 처리 | 다음 기록에서 갱신 | Node API 10 passed, frontend 26 passed, 전체 119 passed, 브라우저 401 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
 
 ## 팀 역할과 실제 이력
 

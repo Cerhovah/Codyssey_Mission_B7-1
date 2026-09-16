@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R10 브라우저 대화 이력 복원 검증
+최종 갱신: 2026-09-16 / R11 API 오류·세션 만료 검증
 
 ## 네 가지 완료 축
 
@@ -131,3 +131,8 @@
 | R10 | 기존 토큰으로 브라우저 새로고침, 로그아웃 후 재로그인 | 같은 DB의 질문·response·latency 복원, 로그아웃 즉시 화면 제거, console warning/error 0건 |
 | R10 | 신규 `browser_empty_r10` 계정 로그인과 DB 교차 확인 | 빈 배열 화면 유지; 기존 사용자 1행, 신규 사용자 0행으로 격리 확인 |
 | R10 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 118 passed, dependency deprecation warning 2건 |
+| R11 | Node `--test tests/frontend/api.test.mjs` | 10 passed; 400/422/500/504·비JSON·빈/객체 detail·본문 읽기·네트워크·무재시도 검증 |
+| R11 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py -q` | 26 passed; 보호 API 401과 로그인 401 경계·stale guard 순서 검증 |
+| R11 | 로컬 JWT 서명키 교체 뒤 저장 토큰으로 브라우저 새로고침 | history 401 뒤 토큰 null·대화 초기화·만료 안내 로그인 모달 확인 |
+| R11 | 같은 모달에서 잘못된 비밀번호 로그인 | 로그인 401 detail만 폼에 표시, 재호출 루프·자동 로그인 없음 |
+| R11 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 119 passed, dependency deprecation warning 2건 |
