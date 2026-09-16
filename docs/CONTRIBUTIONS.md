@@ -20,7 +20,8 @@
 | R03 | Cerhovah | 회원가입과 비밀번호 검증 | `c637a8c` | `pytest tests/test_auth.py -q` → 22 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 | R03 보강 | Cerhovah | 인증 저장 트랜잭션·해시 장애·공통 오류 경계 강화 | `02e40a3` | 전체 `pytest` → 34 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 | R04 | Cerhovah | 로그인 JWT와 보호 API 인증 | `d8174f0` | 전체 `pytest` → 55 passed | 없음 | 로컬 기능 브랜치 | 예정 |
-| R05 | Cerhovah | 최근 문맥 Mock 채팅·저장·기록·표준 로그 | 다음 기록에서 갱신 | 전체 `pytest` → 93 passed | 없음 | 로컬 기능 브랜치 | 예정 |
+| R05 | Cerhovah | 최근 문맥 Mock 채팅·저장·기록·표준 로그 | `2d0b576` | 전체 `pytest` → 93 passed | 없음 | 로컬 기능 브랜치 | 예정 |
+| R06 | Cerhovah | 채팅 화면 기본 구조와 상태 영역 | 다음 기록에서 갱신 | frontend/bootstrap 17 passed, 전체 101 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 
 ## 팀 역할과 실제 이력
 

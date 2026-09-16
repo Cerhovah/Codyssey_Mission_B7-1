@@ -74,7 +74,7 @@
 | T19 | NOT_RUN | 공급자·응답 실패 |
 | T20 | NOT_RUN | DB 실패·rollback |
 | T21 | PASS | 성공 4개+AI/DB 실패 2개 이벤트와 토큰·암호·질문 비노출 |
-| T22 | NOT_RUN | Git 제외·정적 비노출 |
+| T22 | PASS | ignore 15/15과 `/.env`·DB·로그·Git·README HTTP 404 검증 |
 | T23 | NOT_RUN | AI 모드 판정 |
 | T24 | NOT_RUN | OpenAPI·문서·스키마 |
 | T25 | NOT_RUN | 브라우저 핵심 E2E |
@@ -113,3 +113,5 @@
 | R04 | `.venv/Scripts/python.exe -m pytest tests/test_login_auth.py tests/test_auth.py -q` | 47 passed, dependency deprecation warning 2건 |
 | R05 | `.venv/Scripts/python.exe -m pytest -q` | 93 passed, Mock·문맥·기록·복구·인증 우선순위·동시 turn 직렬화·UTF-8/OpenAPI health 포함 |
 | R05 | constraints의 `Requires-Python`을 Python 3.10.0 기준 전수 검사 | websockets 17.1만 3.11+ 충돌 확인; 15.0.1(3.9+)로 교체 후 `pip check` PASS |
+| R06 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py tests/test_bootstrap.py -q` | 17 passed; `/`·CSS 제공, 정적 DOM·비노출 경계 검증 |
+| R06 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 101 passed, dependency deprecation warning 2건 |

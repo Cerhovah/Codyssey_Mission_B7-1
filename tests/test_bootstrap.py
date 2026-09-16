@@ -106,8 +106,9 @@ def test_health_contract_and_static_boundary(test_settings: Settings) -> None:
     assert health.json() == {"status": "ok"}
     assert health.headers["X-AI-Mode"] == "mock"
     assert health.headers["content-type"] == "application/json; charset=utf-8"
-    assert root.status_code == 503
-    assert root.json() == {"detail": "프론트엔드가 아직 준비되지 않았습니다."}
+    assert root.status_code == 200
+    assert root.headers["content-type"].startswith("text/html")
+    assert "AI Assistant" in root.text
     assert env_file.status_code == 404
     assert database_file.status_code == 404
 
