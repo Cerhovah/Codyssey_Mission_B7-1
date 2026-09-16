@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R02 서버·DB 기반 검증
+최종 갱신: 2026-09-16 / R07 로그인 UI·API 경계 검증
 
 ## 네 가지 완료 축
 
@@ -115,3 +115,6 @@
 | R05 | constraints의 `Requires-Python`을 Python 3.10.0 기준 전수 검사 | websockets 17.1만 3.11+ 충돌 확인; 15.0.1(3.9+)로 교체 후 `pip check` PASS |
 | R06 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py tests/test_bootstrap.py -q` | 17 passed; `/`·CSS 제공, 정적 DOM·비노출 경계 검증 |
 | R06 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 101 passed, dependency deprecation warning 2건 |
+| R07 | Node ESM `--check`로 `static/js/api.js`, `static/js/auth.js` 검사 | 두 파일 모두 구문 검사 PASS |
+| R07 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py -q` | 14 passed; 로그인 계약·fetch 중앙화·토큰 저장·선택 헤더 비의존·취소 요청 무효화 검증 |
+| R07 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 107 passed, dependency deprecation warning 2건 |
