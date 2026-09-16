@@ -11,7 +11,7 @@
 - `PUBLIC_URL`: BLOCKED_EXTERNAL — AWS/비용/외부 공개 승인이 필요합니다.
 - `TEAM_HISTORY`: NEEDS_TEAM_REVIEW — 개인 저장소 이력은 팀 4명 기여·PR 증거를 대신하지 않습니다.
 
-현재 백엔드는 회원가입·로그인·보호 API·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·성공/실패 운영 로그까지 구현했습니다. 브라우저 프론트가 아직 없으므로 `LOCAL_MINIMUM`은 계속 `NOT_RUN`입니다.
+현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. 실제 AI adapter, DB 장애 실주입, 운영 확인 도구와 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
 
 ## 문제와 사용자
 
@@ -91,6 +91,7 @@ python3 -m venv .venv
 - 구현 명세: `docs/IMPLEMENTATION_SPEC.md`
 - 작업 순서: `docs/MILESTONES.md`
 - API 계약: `docs/api_spec.md`
+- 프론트 실행·이식 경계: `docs/FRONTEND_GUIDE.md`
 - 실행·검증 상태: `docs/IMPLEMENTATION_STATUS.md`
 - 실제 기여 기록: `docs/CONTRIBUTIONS.md`
 

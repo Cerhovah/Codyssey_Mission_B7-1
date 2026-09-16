@@ -30,6 +30,7 @@ def test_root_and_stylesheet_are_served_by_fastapi(frontend_client: TestClient) 
     api_script = frontend_client.get("/static/js/api.js")
     auth_script = frontend_client.get("/static/js/auth.js")
     app_script = frontend_client.get("/static/js/app.js")
+    keyboard_script = frontend_client.get("/static/js/keyboard.js")
 
     assert root.status_code == 200
     assert root.headers["content-type"].startswith("text/html")
@@ -38,7 +39,9 @@ def test_root_and_stylesheet_are_served_by_fastapi(frontend_client: TestClient) 
     assert api_script.status_code == 200
     assert auth_script.status_code == 200
     assert app_script.status_code == 200
+    assert keyboard_script.status_code == 200
     assert "javascript" in api_script.headers["content-type"]
+    assert "javascript" in keyboard_script.headers["content-type"]
 
 
 def test_html_has_minimum_chat_and_auth_state_regions() -> None:
@@ -100,6 +103,26 @@ def test_api_calls_are_centralized_in_api_module() -> None:
     assert "fetch(" not in app_source
     assert '"/api' not in auth_source
     assert '"/api' not in app_source
+
+
+def test_static_modules_only_import_other_static_modules() -> None:
+    """프론트 dependency graph가 static 밖의 Python·환경 파일을 참조하지 않습니다."""
+
+    scripts = {
+        path.name: path.read_text(encoding="utf-8")
+        for path in (STATIC_ROOT / "js").glob("*.js")
+    }
+
+    for source in scripts.values():
+        assert "../" not in source
+        assert ".env" not in source
+        assert "process.env" not in source
+        assert "os.environ" not in source
+        for line in source.splitlines():
+            if line.startswith("import "):
+                assert ' from "./' in line
+
+    assert sum(source.count("fetch(") for source in scripts.values()) == 1
 
 
 def test_chat_uses_exact_question_answer_and_latency_contract() -> None:

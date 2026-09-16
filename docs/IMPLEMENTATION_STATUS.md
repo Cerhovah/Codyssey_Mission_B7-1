@@ -1,12 +1,12 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R14 모바일 입력·키보드 접근성 검증
+최종 갱신: 2026-09-16 / R15 프론트 API 계약·인계 경계 검증
 
 ## 네 가지 완료 축
 
 | 축 | 상태 | 현재 근거 / 다음 조건 |
 |---|---|---|
-| LOCAL_MINIMUM | NOT_RUN | R01~R14 구현·로컬 브라우저 E2E 진행; R15~R20과 최종 로컬 게이트 남음 |
+| LOCAL_MINIMUM | NOT_RUN | R01~R15 구현·프론트 통합 회귀 완료; R16~R20과 최종 로컬 게이트 남음 |
 | REAL_AI | BLOCKED_EXTERNAL | 실제 코디세이 공급자 URL·모델·키·사용 권한·유료 호출 승인 필요 |
 | PUBLIC_URL | BLOCKED_EXTERNAL | AWS 계정·리전·비용·보안그룹·TLS/HTTP 위험·외부 공개 승인 필요 |
 | TEAM_HISTORY | NEEDS_TEAM_REVIEW | 평가 저장소의 팀원별 SHA·PR·최종 브랜치 범위 미확인 |
@@ -76,7 +76,7 @@
 | T21 | PASS | 성공 4개+AI/DB 실패 2개 이벤트와 토큰·암호·질문 비노출 |
 | T22 | PASS | ignore 15/15과 `/.env`·DB·로그·Git·README HTTP 404 검증 |
 | T23 | NOT_RUN | AI 모드 판정 |
-| T24 | NOT_RUN | OpenAPI·문서·스키마 |
+| T24 | PASS | 실제 OpenAPI·Pydantic schema·api_spec·api.js의 5경로, method, status, 필드, 배열, 공통 오류 대조 |
 | T25 | PASS | 로컬 브라우저 가입 → 로그인 → 질문 → 답변 뒤 로그아웃·재로그인과 저장 기록 복원 |
 | T26 | PASS | 느린 성공·504·JSON 500·비JSON 500에서 로딩 차단·입력 보존·폼 복구와 후속 정상 전송 |
 | T27 | PASS | A의 느린 성공·늦은 401 중 로그아웃→B 로그인 뒤 A 응답 비표시·B 세션 유지, 두 탭 전환 동기화 |
@@ -153,3 +153,9 @@
 | R14 | 실제 키보드와 모달 검증 | Enter 전송, Shift+Enter 줄바꿈, 한글 입력, 성공 뒤 textarea 포커스 복귀, Tab 양방향 순환·Escape opener 복귀 |
 | R14 | HTML 이벤트 속성 문자열 질문 → Mock → 새로고침 | literal text만 복원, message 영역 img/script 0개, 실행 marker 없음, console warning/error 0건 |
 | R14 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 127 passed, dependency deprecation warning 2건 |
+| R15 | Node `--test tests/frontend/*.test.mjs` | 18 passed; 다섯 API 정상·잘못된 성공 계약, 무재시도, 선택 헤더 비의존, IME 판정 |
+| R15 | `.venv/Scripts/python.exe -m pytest tests/test_frontend_contract.py tests/test_api_contract.py -q` | 38 passed; static 자원·독립 경계와 OpenAPI·문서·프론트 3방향 대조 |
+| R15 | 새 로컬 사용자 가입 → 로그인 → 채팅 → 로그아웃 → 재로그인 | 201 → 200 → 200, 저장 질문·Mock 답변 복원, keyboard.js 200 확인 |
+| R15 | 같은 사용자에서 비JSON 500 → 정상 질문 | 안전 문구·입력 복구 뒤 정상 200·DB 저장, browser console warning/error 0건 |
+| R15 | `docs/FRONTEND_GUIDE.md` 경계 감사 | static 파일 역할·서버 제공 경로·5 API·선택 헤더·보안 한계·추후 이식 절차 기록, 실제 이식 미실행 |
+| R15 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 131 passed, dependency deprecation warning 2건 |

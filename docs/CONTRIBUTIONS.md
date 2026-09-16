@@ -29,7 +29,8 @@
 | R11 | Cerhovah | 공통 API 오류·비JSON·보호 API 401 처리 | `16fe125` | Node API 10 passed, frontend 26 passed, 전체 119 passed, 브라우저 401 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
 | R12 | Cerhovah | 로딩 상태·중복 전송 차단·오류 뒤 폼 복구 | `df791be` | Node API 10 passed, frontend 28 passed, 전체 121 passed, 브라우저 504·500·비JSON·복구 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
 | R13 | Cerhovah | 로그아웃·사용자 전환·다중 탭 응답 격리 | `db33fd3` | frontend 30 passed, 전체 123 passed, 브라우저 A→B·늦은 401·두 탭 동기화 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
-| R14 | Cerhovah | 모바일 입력·키보드·IME·포커스 접근성 | 다음 기록에서 갱신 | Node 15 passed, frontend 34 passed, 전체 127 passed, 360×640·XSS·키보드 브라우저 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
+| R14 | Cerhovah | 모바일 입력·키보드·IME·포커스 접근성 | `5d46119` | Node 15 passed, frontend 34 passed, 전체 127 passed, 360×640·XSS·키보드 브라우저 확인 | 없음 | 로컬 기능 브랜치 | 예정 |
+| R15 | Cerhovah | 프론트 API·OpenAPI 회귀와 실행·이식 경계 문서 | 다음 기록에서 갱신 | Node 18 passed, frontend/contract 38 passed, 전체 131 passed, 새 사용자 브라우저 E2E | 없음 | 로컬 기능 브랜치 | 검토용 설명 작성·본인 확인 대기 |
 
 ## 팀 역할과 실제 이력
 
