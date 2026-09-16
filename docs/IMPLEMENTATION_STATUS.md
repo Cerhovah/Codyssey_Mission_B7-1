@@ -26,7 +26,7 @@
 | ID | 요구사항 | 상태 | 실제 증거 / 대기 조건 |
 |---|---|---|---|
 | M01 | 같은 화면 질문·응답 | NOT_RUN | 구현 전 |
-| M02 | 회원가입·로그인 | NOT_RUN | 구현 전 |
+| M02 | 회원가입·로그인 | PASS | 임시 DB에서 실제 사용자 가입 201·로그인 200·해시/JWT 검증 |
 | M03 | 인증별 접근제어 | NOT_RUN | 구현 전 |
 | M04 | 실제 AI API 호출 | NOT_RUN | 외부 조건은 상단 REAL_AI에 별도 기록; 공급자·키·호출 승인 필요 |
 | M05 | 최근 사용자 문맥 | NOT_RUN | 구현 전 |
@@ -58,8 +58,8 @@
 | T03 | PASS | 공백/2자/51자/trim/내부공백·대소문자 보존 검증 |
 | T04 | PASS | 3/4/100/101자·공백·100자 한글 경계 검증 |
 | T05 | PASS | 100자 ASCII·한글과 72바이트 이후 차이 검증 |
-| T06 | NOT_RUN | 로그인 |
-| T07 | NOT_RUN | JWT 위조·만료·claims |
+| T06 | PASS | JSON 로그인 성공·동일 401·공백 422·form 거부·긴 입력 우회 검증 |
+| T07 | PASS | HS256, sub/iat/exp, 1440분, 위조·만료·타알고리즘·없는 사용자 401 |
 | T08 | NOT_RUN | 보호 API 인증 |
 | T09 | NOT_RUN | JSON·구형 key 거부 |
 | T10 | NOT_RUN | Mock 채팅·DB |
@@ -109,3 +109,5 @@
 | R02 | bcrypt 4.0.1 재설치 후 bcrypt_sha256 smoke | 4자·100자 ASCII·100자 한글·72바이트 이후 차이 모두 PASS |
 | R02 | `.venv/Scripts/python.exe -m pytest tests/test_bootstrap.py -q` | 8 passed, dependency deprecation warning 2건 |
 | R03 | `.venv/Scripts/python.exe -m pytest tests/test_auth.py -q` | 22 passed, dependency deprecation warning 2건 |
+| R03 보강 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 34 passed; 손상 해시·트랜잭션·404/405 한국어 오류 회귀 포함 |
+| R04 | `.venv/Scripts/python.exe -m pytest tests/test_login_auth.py tests/test_auth.py -q` | 47 passed, dependency deprecation warning 2건 |

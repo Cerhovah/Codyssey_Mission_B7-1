@@ -3,7 +3,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-import sqlite3
 
 import aiosqlite
 
@@ -107,7 +106,13 @@ async def create_user(
             await connection.commit()
         except aiosqlite.IntegrityError as exc:
             await connection.rollback()
-            if getattr(exc, "sqlite_errorcode", None) == sqlite3.SQLITE_CONSTRAINT_UNIQUE:
+            duplicate = await (
+                await connection.execute(
+                    "SELECT 1 FROM users WHERE username = ?",
+                    (username,),
+                )
+            ).fetchone()
+            if duplicate is not None:
                 raise DuplicateUsernameError from exc
             raise
         except aiosqlite.Error:

@@ -28,6 +28,8 @@
 
 비밀번호는 4~100자 계약과 원시 bcrypt의 72바이트 경계를 함께 지키기 위해 Passlib의 `bcrypt_sha256` v2로 저장합니다. 입력을 자르거나 단순 SHA-256으로 저장하지 않습니다. 이는 일반 bcrypt 포맷과 다르므로 기존 팀 DB에 자동 적용하지 않습니다.
 
+로그인은 JSON `username/password`를 검증한 뒤 HS256 JWT를 발급합니다. 토큰에는 `sub`, `iat`, `exp`가 들어가며 기본 수명은 1440분입니다. 보호 API는 서명·알고리즘·만료·필수 claims뿐 아니라 `sub`의 사용자가 DB에 실제 존재하는지도 확인합니다. 클라이언트 로그아웃은 브라우저 토큰 삭제 방식이므로 이미 복사된 JWT를 서버에서 즉시 폐기하지 못하며, refresh token·블랙리스트는 현재 최소 범위에 포함하지 않습니다.
+
 외부 계약의 기준은 `docs/api_spec.md`, 충돌 결정은 `docs/PROJECT_PLAN.md`, 구현 상세는 `docs/IMPLEMENTATION_SPEC.md`입니다. 프론트는 같은 origin의 `/api/...`만 호출하고 Python 모듈·서버 템플릿·`.env`에 직접 의존하지 않습니다. 선택 응답 헤더 `X-AI-Mode`가 없어도 핵심 기능은 동작해야 합니다.
 
 ## 예정 구조
