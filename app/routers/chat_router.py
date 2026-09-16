@@ -122,7 +122,8 @@ async def chat(
         ) from exc
 
     messages = build_messages(history, payload.question)
-    log_ai_call_start(current_user.id, request_id)
+    ai_mode = settings.resolved_ai_mode
+    log_ai_call_start(current_user.id, request_id, ai_mode)
     try:
         result = await generate_ai_response(
             messages,
@@ -155,7 +156,7 @@ async def chat(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="AI 응답을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.",
         )
-    log_ai_call_success(request_id, result.latency_ms)
+    log_ai_call_success(request_id, result.latency_ms, ai_mode)
 
     try:
         saved = await save_chat_log(
@@ -173,7 +174,7 @@ async def chat(
         ) from exc
 
     log_db_save_success(current_user.id, saved.id)
-    response.headers["X-AI-Mode"] = settings.resolved_ai_mode
+    response.headers["X-AI-Mode"] = ai_mode
     return ChatResponse(answer=result.answer, latency_ms=result.latency_ms)
 
 

@@ -1,12 +1,12 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R19 EC2 배포 절차·설정 템플릿 로컬 검증
+최종 갱신: 2026-09-16 / R20 새 환경 재현·보안 감사·인계 문서 완료
 
 ## 네 가지 완료 축
 
 | 축 | 상태 | 현재 근거 / 다음 조건 |
 |---|---|---|
-| LOCAL_MINIMUM | NOT_RUN | R01~R19 구현·프론트 통합 회귀 완료; R20 새 환경 최종 로컬 게이트 남음 |
+| LOCAL_MINIMUM | PASS | R01~R20 로컬 구현, 브라우저, 실제 DB 실패, 확인 도구, 새 가상환경 205개 테스트와 smoke 완료 |
 | REAL_AI | BLOCKED_EXTERNAL | 실제 코디세이 공급자 URL·모델·키·사용 권한·유료 호출 승인 필요 |
 | PUBLIC_URL | BLOCKED_EXTERNAL | AWS 계정·리전·비용·보안그룹·TLS/HTTP 위험·외부 공개 승인 필요 |
 | TEAM_HISTORY | NEEDS_TEAM_REVIEW | 평가 저장소의 팀원별 SHA·PR·최종 브랜치 범위 미확인 |
@@ -36,16 +36,16 @@
 | M09 | AI 실패/timeout 복구 | PASS | HTTPX/전체 await timeout 504 뒤 같은 real client·transport의 다음 요청 성공 |
 | M10 | 입력 검증 | PASS | 공백 400, 원문 501자·padded 502자 422, Unicode 500자 검증 |
 | M11 | 외부 URL | NOT_RUN | 외부 조건은 상단 PUBLIC_URL에 별도 기록; 배포·공개 승인 필요 |
-| M12 | 필수 기술 문서 | NOT_RUN | 초기 문서만 존재; 실제 결과 반영 필요 |
-| M13 | 비밀값 환경변수·Git 제외 | NOT_RUN | ignore 정적 확인과 추적 검사 예정 |
-| M14 | 브랜치 전략·작업 흔적 | PASS | 명시한 base..ref와 정확한 이메일로 본인 non-merge·비어 있지 않은 로컬 후보 21개 확인 |
+| M12 | 필수 기술 문서 | PASS | README에 문제·대상·구조·5 API·DB·환경·실행·Mock/real·확인·배포·기여 경계를 실제 결과로 기록 |
+| M13 | 비밀값 환경변수·Git 제외 | PASS | 안전한 `.env` 최초 생성, tracked-ignore 0, 민감 확장자 추적 0, static 설정키/절대URL 0, credential 패턴 0 |
+| M14 | 브랜치 전략·작업 흔적 | NEEDS_TEAM_REVIEW | 개인 저장소의 명시한 base..ref와 정확한 이메일로 R19까지 본인 non-merge·비어 있지 않은 로컬 후보 23개 확인; 실제 평가 저장소의 승인 흐름은 미확정이고 R20은 커밋 후 감사 대상 |
 | M15 | 실제 PR merge | NOT_RUN | 원격 작업 별도 승인 필요 |
 | M16 | 팀원별 유의미한 커밋 10개 | NOT_RUN | 팀 평가 저장소 이력 미확인 |
 | M17 | 역할·이력 일치 | NOT_RUN | 실제 팀 SHA/PR 미확인 |
 | M18 | Python/FastAPI/SQLite | PASS | Python 3.12.14 가상환경, FastAPI 0.141.1, aiosqlite 0.22.1 실제 테스트 |
-| M19 | GitHub 저장소 링크 | NOT_RUN | 원격 주소 확인, 제출 대상 확인 필요 |
+| M19 | GitHub 저장소 링크 | NEEDS_TEAM_REVIEW | 개인 origin은 확인했지만 push되지 않았고 실제 팀 평가 저장소·최종 반영 대상은 미확정 |
 | M20 | DB 확인 가이드 | PASS | README에 바인딩된 읽기 전용 `check_db.py`/`check_logs.sql`과 별도 운영 로그 절차 기록, 실제 DB 5행 조회 |
-| M21 | 여섯 흐름 개인 설명 | NOT_RUN | 실제 구현·직접 확인 후 작성 |
+| M21 | 여섯 흐름 개인 설명 | NOT_RUN | `PERSONAL_EXPLANATION.md` 검토용 초안 작성; 학습자 본인의 직접 설명·확인 전 PASS 금지 |
 
 ## T01~T33 테스트 추적표
 
@@ -82,7 +82,7 @@
 | T27 | PASS | A의 느린 성공·늦은 401 중 로그아웃→B 로그인 뒤 A 응답 비표시·B 세션 유지, 두 탭 전환 동기화 |
 | T28 | PASS | 360×640 내부 스크롤·입력, Enter/Shift+Enter·IME guard, 모달 키보드, 저장 후 HTML 문자열 비실행 |
 | T29 | PASS | 현재 실행 설정을 `data/browser_e2e.db`로 지정해 사용자 1의 최근 5행을 id 내림차순 실제 조회; 임시 A/B DB의 최신 20행·격리·무변경도 검증 |
-| T30 | NOT_RUN | 새 가상환경 재현 |
+| T30 | PASS | OS 임시 새 venv의 Python 3.12.14/pip 25.0.1에서 41 constraints 정규화 일치, install·pip check·205 pytest·격리 smoke 통과 |
 | T31 | BLOCKED_EXTERNAL | 승인된 실제 AI 두 턴 필요 |
 | T32 | BLOCKED_EXTERNAL | 승인된 외부 배포 필요 |
 | T33 | NEEDS_TEAM_REVIEW | 실제 팀 PR·기여 이력 필요 |
@@ -180,3 +180,9 @@
 | R19 | 배포 템플릿 회귀 | 13 passed; 내부 `127.0.0.1:8000`, 단일 worker, 15초 proxy 여유, 입력 주입·root·상대경로·임의 출력·symlink·덮어쓰기 거부, generated ignore 확인 |
 | R19 | 전체 로컬 회귀 | Python 198 passed, dependency warning 2건; Node 18 passed |
 | R19 | 배포 적용 상태 | AWS·보안그룹·TLS·Swap·systemd·Nginx 적용은 미실행; PUBLIC_URL과 T32는 BLOCKED_EXTERNAL 유지 |
+| R20 | `scripts/init_env.py` | 완성된 sibling 파일을 원자적 no-replace hard link로 게시해 무작위 SECRET_KEY·빈 API key·Mock 전용 DB 설정 생성, 기존·동시 생성 파일 무덮어쓰기·부분 파일 비노출·비밀 미출력; 7 tests passed |
+| R20 | 새 가상환경 재현 | Python 3.12.14/pip 25.0.1, 41개 constraints 이름 정규화 일치, 설치·`pip check` PASS, Python 205 passed·warning 2건, smoke PASS/외부 호출 0 |
+| R20 | 재현 harness 보정 | 최초 raw freeze 비교가 `_`/`-` 표기 차이 2건으로 중단; 패키지 표준 이름 정규화 후 실제 버전 drift 0 확인 |
+| R20 | 비밀·ignore 최종 감사 | tracked-ignore 0, 민감 파일명 추적 0, static 설정키/절대URL 0, credential 패턴 0, origin credential 0 |
+| R20 | 현재 작업환경 최종 회귀 | `pip check` PASS, Python 205 passed·warning 2건, Node 18 passed, smoke 외부 호출 0, 기존 `.env` 재실행 거부 뒤 SHA-256 불변 |
+| R20 | 인계 산출물 | README API·DB·실행 결과 보강, 여섯 흐름 직접 설명용 초안과 오프라인 PR 본문 초안 작성; 실제 PR/본인 설명은 미실행 |

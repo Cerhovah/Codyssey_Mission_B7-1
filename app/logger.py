@@ -38,19 +38,25 @@ def log_request_received(user_id: int | str, path: str) -> None:
     app_logger.info("request_received user_id=%s path=%s", user_id, path)
 
 
-def log_ai_call_start(user_id: int, request_id: str) -> None:
+def log_ai_call_start(user_id: int, request_id: str, ai_mode: str) -> None:
     """AI 호출 시작 이벤트를 기록합니다."""
 
-    app_logger.info("ai_call_start user_id=%s request_id=%s", user_id, request_id)
+    app_logger.info(
+        "ai_call_start user_id=%s request_id=%s mode=%s",
+        user_id,
+        request_id,
+        ai_mode,
+    )
 
 
-def log_ai_call_success(request_id: str, latency_ms: int) -> None:
+def log_ai_call_success(request_id: str, latency_ms: int, ai_mode: str) -> None:
     """AI 응답 성공 이벤트를 기록합니다."""
 
     app_logger.info(
-        "ai_call_success request_id=%s latency_ms=%s",
+        "ai_call_success request_id=%s latency_ms=%s mode=%s",
         request_id,
         latency_ms,
+        ai_mode,
     )
 
 

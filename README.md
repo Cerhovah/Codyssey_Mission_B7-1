@@ -4,14 +4,14 @@
 
 ## 현재 상태
 
-이 저장소는 팀 Organization과 분리된 개인 기준 구현입니다. 최신 명세와 API 계약을 기준으로 기능 단위 개발 중이며, 실제 구현·검증 결과는 `docs/IMPLEMENTATION_STATUS.md`에 사실대로 갱신합니다.
+이 저장소는 팀 Organization과 분리된 개인 기준 구현입니다. 최신 명세와 API 계약의 로컬 구현·재현 게이트를 완료했으며, 외부 조건과 실제 결과는 `docs/IMPLEMENTATION_STATUS.md`에 분리해 기록합니다.
 
-- `LOCAL_MINIMUM`: NOT_RUN
+- `LOCAL_MINIMUM`: PASS — 새 가상환경 설치부터 Mock 풀스택·브라우저·DB·실패 복구까지 로컬 검증했습니다.
 - `REAL_AI`: BLOCKED_EXTERNAL — 실제 공급자 계약·키·호출 승인이 필요합니다.
 - `PUBLIC_URL`: BLOCKED_EXTERNAL — AWS/비용/외부 공개 승인이 필요합니다.
 - `TEAM_HISTORY`: NEEDS_TEAM_REVIEW — 개인 저장소 이력은 팀 4명 기여·PR 증거를 대신하지 않습니다.
 
-현재 백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 로컬에서 연결했습니다. OpenAI 호환 AI adapter는 가짜 HTTP transport로 계약·timeout·오류 경로를 검증했지만 실제 공급자 호출은 승인 대기입니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구, 격리된 API smoke, 읽기 전용 DB 조회, 정확한 Git 범위 감사, 승인 전 EC2 설정 렌더링까지 검증했습니다. R20의 새 환경 최종 재현 게이트가 남아 있어 `LOCAL_MINIMUM`은 아직 `NOT_RUN`입니다.
+백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 연결했습니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구, 격리 smoke, 읽기 전용 DB 조회, Git 범위 감사, EC2 설정 렌더링, 완전한 새 가상환경의 205개 Python 테스트를 통과했습니다. OpenAI 호환 adapter는 가짜 HTTP transport로 검증했지만 실제 공급자 호출, 공개 URL, 팀 PR은 승인·외부 증거 대기입니다. 따라서 로컬 최소 구현 PASS는 미션 전체 완료를 뜻하지 않습니다.
 
 ## 문제와 사용자
 
@@ -47,9 +47,32 @@ FastAPI는 `/`에서 `static/index.html`, `/static/`에서 필요한 정적 자�
 
 같은 사용자의 동시 채팅은 단일 서버 프로세스 안에서 사용자별 turn lock으로 직렬화합니다. 문맥 조회 뒤 AI를 기다리는 동안 SQLite 쓰기 트랜잭션은 열지 않으며, 배포는 명세대로 Uvicorn 단일 worker를 전제로 합니다. 다중 worker/다중 인스턴스에는 별도의 분산 순서 제어가 필요합니다.
 
+## API 요약
+
+프론트와 서버의 기준 계약은 `docs/api_spec.md`이며, 아래 다섯 경로를 같은 origin에서 사용합니다.
+
+| Method / path | 인증 | 요청 | 성공 응답 |
+|---|---|---|---|
+| `GET /api/health` | 없음 | 없음 | 200 `{"status":"ok"}` |
+| `POST /api/auth/register` | 없음 | `username`, `password` JSON | 201 `message`, `username` |
+| `POST /api/auth/login` | 없음 | `username`, `password` JSON | 200 `access_token`, `token_type="bearer"` |
+| `POST /api/chat` | Bearer JWT | `question` JSON | 200 `answer`, `latency_ms` |
+| `GET /api/me/chats` | Bearer JWT | 없음 | 200 기록 객체의 JSON 배열 |
+
+보호 API는 `Authorization: Bearer <token>`을 요구합니다. 질문 공백은 400, 일반 schema 오류는 422, 인증 실패는 401, AI 장애는 504, DB/서버 장애는 500이며 body는 모두 문자열 `detail`을 사용합니다. 기록 객체는 `id`, `question`, `response`, `latency_ms`, `created_at`을 포함하고 `user_id`나 wrapper 없이 배열로 반환합니다.
+
+## SQLite 구조
+
+| 테이블 | 필드 | 역할 |
+|---|---|---|
+| `users` | `id`, `username`, `hashed_password`, `created_at` | 고유 username과 단방향 비밀번호 해시 |
+| `chat_logs` | `id`, `user_id`, `question`, `response`, `latency_ms`, `created_at` | 인증 사용자별 성공 대화 누적 |
+
+`chat_logs.user_id`는 `users.id` 외래키이고 `(user_id, id)` 인덱스로 사용자별 문맥·기록 조회를 보완합니다. SQLite `CURRENT_TIMESTAMP`의 UTC 시각을 API에서 초 단위 문자열로 표시합니다. 성공 대화는 commit 뒤에만 응답하고, 실패 시 rollback합니다. 앱 재시작은 `CREATE TABLE IF NOT EXISTS`와 WAL을 적용할 뿐 기존 행을 초기화하지 않습니다.
+
 ## 환경 설정
 
-`.env.example`을 `.env`로 복사한 뒤 `SECRET_KEY`를 실제 무작위 값으로 바꿉니다. `scripts/init_env.py`가 구현되면 기존 파일을 덮어쓰지 않고 로컬 설정을 안전하게 만들 예정입니다.
+로컬 Mock 개발은 `scripts/init_env.py --mode mock`으로 시작합니다. 이 도구는 `.env`가 없을 때만 무작위 `SECRET_KEY`, 빈 API 키, `sqlite:///./data/chatbot.mock.db`, `APP_ENV=development`, `AI_MODE=mock`을 만들며 키를 출력하지 않습니다. 기존 `.env`는 덮어쓰지 않습니다. `.env.example`의 키·URL은 형식 예시일 뿐 운영값이 아닙니다.
 
 필수·보완 설정 이름:
 
@@ -58,15 +81,18 @@ FastAPI는 `/`에서 `static/index.html`, `/static/`에서 필요한 정적 자�
 - `CODESSEY_API_KEY`, `CODESSEY_API_BASE`, `AI_MODEL_NAME`, `AI_TIMEOUT_SECONDS`
 - `APP_ENV`, `AI_MODE`, `CONTEXT_TURNS`
 
-예시 키는 실제 비밀값이 아니며 운영에 사용할 수 없습니다. 실제 AI URL·모델·권한은 확인되지 않았고 유료 호출은 별도 승인 전 실행하지 않습니다.
+real 전환은 `.env`에서 AI 모드·실제 키·확인된 HTTPS provider·model·`data/chatbot.db`를 운영자가 직접 함께 검토해야 합니다. 기존 Mock DB는 삭제하지 않습니다. 실제 AI URL·모델·권한은 확인되지 않았고 유료 호출은 별도 승인 전 실행하지 않습니다.
 
-## 개발 실행 계획
+## 로컬 설치와 실행
 
-아래 명령은 해당 파일이 구현된 뒤 사용합니다. Windows에서는 PowerShell 실행 정책을 바꾸지 않고 가상환경 Python을 직접 호출할 수 있습니다.
+저장소 루트에서 Python 3.10+ 가상환경을 만들고 `requirements.txt`를 검증된 `constraints.txt`와 함께 설치합니다. Windows에서는 먼저 실제 Python 3.10+ 실행 파일을 `$PythonExe`로 지정하고 버전을 확인합니다. 이 Codex 검증 호스트는 `py` launcher가 없어 아래 bundled Python 3.12.14 경로를 사용했습니다. 일반 환경에서는 첫 줄을 설치된 `python.exe`의 절대 경로로 바꾸면 되며, PowerShell 실행 정책을 바꿀 필요는 없습니다.
 
 ```powershell
-py -3.10 -m venv .venv
+$PythonExe = "$env:USERPROFILE/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe"
+& $PythonExe --version
+& $PythonExe -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements.txt -c constraints.txt
+.venv/Scripts/python.exe -m pip check
 .venv/Scripts/python.exe scripts/init_env.py --mode mock
 .venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 .venv/Scripts/python.exe -m pytest
@@ -75,6 +101,7 @@ py -3.10 -m venv .venv
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt -c constraints.txt
+.venv/bin/python -m pip check
 .venv/bin/python scripts/init_env.py --mode mock
 .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 .venv/bin/python -m pytest
@@ -82,7 +109,7 @@ python3 -m venv .venv
 
 브라우저 검증 주소는 `http://127.0.0.1:8000`입니다. HTML 파일을 직접 여는 방식은 지원하지 않습니다.
 
-`constraints.txt`는 Windows의 작업공간 Python 3.12.14에서 실제 설치·`pip check`·해시 smoke를 통과한 조합입니다. 특히 `passlib 1.7.4`와 최신 `bcrypt 5.0.0` 조합은 이 환경의 backend 탐지에서 실패하여, 긴 입력 구분 테스트를 통과한 `bcrypt 4.0.1`을 고정했습니다. 배포 Python/OS에서는 다시 설치 검증해야 합니다.
+`constraints.txt`는 Windows의 Python 3.12.14에서 새 가상환경 설치·`pip check`·전체 회귀·해시 smoke를 통과한 41개 패키지 조합입니다. 주요 실제 버전은 FastAPI 0.141.1, Uvicorn 0.53.0, aiosqlite 0.22.1, HTTPX 0.28.1, Pydantic 2.13.5, Passlib 1.7.4, bcrypt 4.0.1입니다. 최신 bcrypt 5.0.0은 이 환경의 Passlib backend 탐지에서 실패하여, 긴 입력 구분 테스트를 통과한 4.0.1을 고정했습니다. 배포 Python/OS에서는 다시 설치 검증해야 합니다.
 
 ## 로컬 검증 도구
 
@@ -92,7 +119,7 @@ python3 -m venv .venv
 .venv/Scripts/python.exe scripts/smoke_test.py
 ```
 
-DB 대화 기록은 현재 `DATABASE_URL`이 가리키는 기존 SQLite 파일을 읽기 전용으로 엽니다. 먼저 로그인한 사용자로 대화 한 건을 만든 뒤 `GET /api/me/chats` 응답의 실제 `user_id`를 사용하며, `1`을 고정 사용자라고 가정하지 않습니다. 이 도구는 질문과 답변 원문을 표시하므로 로컬 운영자만 실행하고 실제 사용자 결과를 Git·Issue·채팅에 붙이지 않습니다.
+DB 대화 기록은 현재 `DATABASE_URL`이 가리키는 기존 SQLite 파일을 읽기 전용으로 엽니다. 먼저 로그인한 사용자로 대화 한 건을 만든 뒤 로컬 `logs/app.log` 또는 systemd journal의 해당 `request_received user_id=... path=/api/chat`에서 인증된 실제 ID를 확인하며, `1`을 고정 사용자라고 가정하지 않습니다. 기록 API는 `user_id`를 노출하지 않습니다. 이 도구는 질문과 답변 원문을 표시하므로 로컬 운영자만 실행하고 실제 사용자 결과를 Git·Issue·채팅에 붙이지 않습니다.
 
 ```powershell
 .venv/Scripts/python.exe scripts/check_db.py --user-id <실제 사용자 ID>
@@ -121,6 +148,8 @@ DB 대화 기록은 현재 `DATABASE_URL`이 가리키는 기존 SQLite 파일�
 - EC2 배포 절차·승인 경계: `docs/DEPLOYMENT.md`
 - 실행·검증 상태: `docs/IMPLEMENTATION_STATUS.md`
 - 실제 기여 기록: `docs/CONTRIBUTIONS.md`
+- 여섯 흐름 직접 설명용 초안: `docs/PERSONAL_EXPLANATION.md`
+- 원격 생성 전 PR 본문 초안: `docs/PR_DRAFT.md`
 
 GitHub 저장소는 현재 `https://github.com/Cerhovah/Codyssey_Mission_B7-1`로 설정되어 있지만 이번 작업의 원격 push·PR·merge는 승인 전 보류합니다. 공개 서비스 URL은 아직 없습니다.
 

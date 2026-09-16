@@ -588,6 +588,20 @@ def test_real_failure_matrix_is_safe_unretried_and_never_falls_back(
     assert [row["question"] for row in history.json()] == ["장애 뒤 복구"]
     assert len(requests) == len(cases) + 1
     joined_logs = "\n".join(record.getMessage() for record in log_handler.records)
+    ai_starts = [
+        record.getMessage()
+        for record in log_handler.records
+        if record.getMessage().startswith("ai_call_start user_id=")
+    ]
+    ai_successes = [
+        record.getMessage()
+        for record in log_handler.records
+        if record.getMessage().startswith("ai_call_success request_id=")
+    ]
+    assert len(ai_starts) == len(cases) + 1
+    assert all(message.endswith(" mode=real") for message in ai_starts)
+    assert len(ai_successes) == 1
+    assert ai_successes[0].endswith(" mode=real")
     assert "provider-secret-body" not in joined_logs
     assert PROVIDER_KEY not in joined_logs
     assert "Bearer " not in joined_logs

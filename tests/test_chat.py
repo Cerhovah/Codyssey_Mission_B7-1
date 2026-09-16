@@ -576,8 +576,15 @@ def test_success_path_emits_required_operational_events(chat_client: TestClient)
     messages = [record.getMessage() for record in records]
     assert response.status_code == 200
     assert any(message.startswith("request_received user_id=") for message in messages)
-    assert any(message.startswith("ai_call_start user_id=") for message in messages)
-    assert any(message.startswith("ai_call_success request_id=") for message in messages)
+    assert any(
+        message.startswith("ai_call_start user_id=") and message.endswith(" mode=mock")
+        for message in messages
+    )
+    assert any(
+        message.startswith("ai_call_success request_id=")
+        and message.endswith(" mode=mock")
+        for message in messages
+    )
     assert any(message.startswith("db_save_success user_id=") for message in messages)
     joined = "\n".join(messages)
     assert "pass1234" not in joined
