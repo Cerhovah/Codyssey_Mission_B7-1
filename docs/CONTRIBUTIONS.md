@@ -37,7 +37,7 @@
 | R17 | Cerhovah | 실제 SQLite INSERT·COMMIT 실패 rollback·로그·복구 검증 | `66dccbf` | DB 실패 2 passed, 전체 180 passed | 없음 | 로컬 기능 브랜치 | 예정 |
 | R18 | Cerhovah | 읽기 전용 DB·격리 smoke·정확한 Git 기여 감사 도구 | `b7a9ad6` | verification 5 passed, 전체 185 passed, Node 18 passed; 실제 DB 5행·후보 21개 | 없음 | 로컬 기능 브랜치 | 예정 |
 | R19 | Cerhovah | EC2 배포 절차와 Nginx/systemd 안전 렌더 템플릿 | `0f422b5` | deployment 13 passed, 전체 198 passed, Node 18 passed; generated ignore·외부변경 없음 | 없음 | 로컬 기능 브랜치 | 예정 |
-| R20 | Cerhovah | 원자적 Mock 환경 초기화·mode 로그·새 venv 재현·최종 보안 감사·인계 문서 | 다음 기록에서 갱신 | init-env 7 passed, 새 venv 전체 205 passed, Node 18 passed, smoke/보안 감사 PASS | 없음 | 로컬 기능 브랜치 | 직접 설명용 초안 작성·본인 확인 대기 |
+| R20 | Cerhovah | 원자적 Mock 환경 초기화·mode 로그·새 venv 재현·최종 보안 감사·인계 문서 | `0880fef` | init-env 7 passed, 새 venv 전체 205 passed, Node 18 passed, smoke/보안 감사 PASS | 없음 | 로컬 기능 브랜치 | 직접 설명용 초안 작성·본인 확인 대기 |
 
 ## 팀 역할과 실제 이력
 

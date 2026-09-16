@@ -38,7 +38,7 @@
 | M11 | 외부 URL | NOT_RUN | 외부 조건은 상단 PUBLIC_URL에 별도 기록; 배포·공개 승인 필요 |
 | M12 | 필수 기술 문서 | PASS | README에 문제·대상·구조·5 API·DB·환경·실행·Mock/real·확인·배포·기여 경계를 실제 결과로 기록 |
 | M13 | 비밀값 환경변수·Git 제외 | PASS | 안전한 `.env` 최초 생성, tracked-ignore 0, 민감 확장자 추적 0, static 설정키/절대URL 0, credential 패턴 0 |
-| M14 | 브랜치 전략·작업 흔적 | NEEDS_TEAM_REVIEW | 개인 저장소의 명시한 base..ref와 정확한 이메일로 R19까지 본인 non-merge·비어 있지 않은 로컬 후보 23개 확인; 실제 평가 저장소의 승인 흐름은 미확정이고 R20은 커밋 후 감사 대상 |
+| M14 | 브랜치 전략·작업 흔적 | NEEDS_TEAM_REVIEW | 개인 저장소의 base..R20 `0880fef`와 정확한 이메일로 본인 non-merge·비어 있지 않은 로컬 후보 24개 확인; 실제 평가 저장소의 승인 흐름은 미확정 |
 | M15 | 실제 PR merge | NOT_RUN | 원격 작업 별도 승인 필요 |
 | M16 | 팀원별 유의미한 커밋 10개 | NOT_RUN | 팀 평가 저장소 이력 미확인 |
 | M17 | 역할·이력 일치 | NOT_RUN | 실제 팀 SHA/PR 미확인 |
@@ -186,3 +186,4 @@
 | R20 | 비밀·ignore 최종 감사 | tracked-ignore 0, 민감 파일명 추적 0, static 설정키/절대URL 0, credential 패턴 0, origin credential 0 |
 | R20 | 현재 작업환경 최종 회귀 | `pip check` PASS, Python 205 passed·warning 2건, Node 18 passed, smoke 외부 호출 0, 기존 `.env` 재실행 거부 뒤 SHA-256 불변 |
 | R20 | 인계 산출물 | README API·DB·실행 결과 보강, 여섯 흐름 직접 설명용 초안과 오프라인 PR 본문 초안 작성; 실제 PR/본인 설명은 미실행 |
+| R20 | 커밋 후 기여 감사 | base `6b2ff28`..R20 `0880fef`, 작성자 `Cerhovah <ljh951206@gmail.com>`, non-merge·nonempty 후보 24개, empty 0; 내용 의미성은 사람 검토, PR·fetch는 NOT_RUN |
