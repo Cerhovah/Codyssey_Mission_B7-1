@@ -13,6 +13,12 @@ def _json_schema(operation: dict, status: str) -> dict:
     return operation["responses"][status]["content"]["application/json"]["schema"]
 
 
+def _documented_endpoint_section(spec: str, number: int) -> str:
+    marker = f"### 3.{number} "
+    section = spec.split(marker, 1)[1]
+    return section.split("\n---", 1)[0]
+
+
 def test_paths_methods_statuses_and_security_match_contract(test_settings: Settings) -> None:
     """다섯 endpoint의 method·status·Bearer 경계를 고정합니다."""
 
@@ -88,34 +94,40 @@ def test_openapi_request_and_response_fields_match_frontend_contract(
             assert _json_schema(operation, status)["$ref"] == error_ref
 
 
-def test_team_spec_and_frontend_module_name_the_same_contract() -> None:
-    """문서와 api.js가 구형 key나 별도 서버 주소로 이탈하지 않게 합니다."""
+def test_team_spec_sections_define_each_endpoint_contract() -> None:
+    """api_spec의 각 endpoint 섹션에서 method·status·필드를 함께 검증합니다."""
 
     spec = (PROJECT_ROOT / "docs" / "api_spec.md").read_text(encoding="utf-8")
+
+    cases = (
+        (1, "/api/auth/register", "POST", "201 Created", {"username", "password"}, {"message", "username"}, {400, 422}),
+        (2, "/api/auth/login", "POST", "200 OK", {"username", "password"}, {"access_token", "token_type"}, {401}),
+        (3, "/api/chat", "POST", "200 OK", {"question"}, {"answer", "latency_ms"}, {400, 401, 422, 504}),
+        (4, "/api/me/chats", "GET", "200 OK", set(), {"id", "question", "response", "latency_ms", "created_at"}, {401}),
+        (5, "/api/health", "GET", "200 OK", set(), {"status"}, set()),
+    )
+
+    for number, path, method, success, request_fields, response_fields, errors in cases:
+        section = _documented_endpoint_section(spec, number)
+        assert f"(`{path}`)" in section
+        assert f"- **Method**: `{method}`" in section
+        assert f"#### Success Response (`{success}`)" in section
+        for field in request_fields:
+            assert f"`{field}`" in section
+        for field in response_fields:
+            assert f"`{field}`" in section or f'"{field}"' in section
+        for status in errors:
+            assert f"**{status} " in section
+
+    assert "배열(`Array<ChatLogItem>`)" in _documented_endpoint_section(spec, 4)
+    assert "**필수** (`Authorization: Bearer <access_token>`)" in _documented_endpoint_section(spec, 3)
+    assert "**필수** (`Authorization: Bearer <access_token>`)" in _documented_endpoint_section(spec, 4)
+
+
+def test_frontend_module_uses_the_documented_relative_paths_and_keys() -> None:
+    """api.js가 구형 key나 별도 서버 주소로 이탈하지 않게 합니다."""
+
     api_source = (PROJECT_ROOT / "static" / "js" / "api.js").read_text(encoding="utf-8")
-
-    for path in (
-        "/api/auth/register",
-        "/api/auth/login",
-        "/api/chat",
-        "/api/me/chats",
-        "/api/health",
-    ):
-        assert path in spec
-
-    for field in (
-        "username",
-        "password",
-        "access_token",
-        "token_type",
-        "question",
-        "answer",
-        "latency_ms",
-        "response",
-        "created_at",
-        "detail",
-    ):
-        assert f"`{field}`" in spec or f'"{field}"' in spec
 
     assert 'const API_BASE = "/api"' in api_source
     for relative_path in ("/auth/register", "/auth/login", "/chat", "/me/chats", "/health"):

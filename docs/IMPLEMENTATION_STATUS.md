@@ -1,6 +1,6 @@
 # 구현 및 미션 검증 상태
 
-최종 갱신: 2026-09-16 / R15 프론트 API 계약·인계 경계 검증
+최종 갱신: 2026-09-16 / R15 성공 상태·문서 섹션 계약 보강
 
 ## 네 가지 완료 축
 
@@ -159,3 +159,6 @@
 | R15 | 같은 사용자에서 비JSON 500 → 정상 질문 | 안전 문구·입력 복구 뒤 정상 200·DB 저장, browser console warning/error 0건 |
 | R15 | `docs/FRONTEND_GUIDE.md` 경계 감사 | static 파일 역할·서버 제공 경로·5 API·선택 헤더·보안 한계·추후 이식 절차 기록, 실제 이식 미실행 |
 | R15 | 전체 `.venv/Scripts/python.exe -m pytest -q` | 131 passed, dependency deprecation warning 2건 |
+| R15 보강 | health/login의 유효 body + 잘못된 201 주입 | 두 함수 모두 `INVALID_CONTRACT`; 정확한 200만 허용 |
+| R15 보강 | api_spec 3.1~3.5 섹션별 대조 | endpoint별 path·method·성공/오류 status·요청/응답 필드·history 배열·Bearer를 OpenAPI와 별도 고정 |
+| R15 보강 | Node와 frontend/contract, 전체 pytest | Node 18 passed, contract 39 passed, 전체 132 passed, warning 2건 |
