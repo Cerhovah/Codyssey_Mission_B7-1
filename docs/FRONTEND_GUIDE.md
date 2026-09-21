@@ -2,6 +2,8 @@
 
 이 문서는 `static/` 프론트엔드의 현재 실행 조건과 검증 근거를 설명합니다. 이번 작업에서는 개인 풀스택 저장소 안에서만 구현했으며, 팀 Organization 저장소로 복사하거나 백엔드를 재접합하지 않았습니다.
 
+2026-09-21 업데이트: 팀 Organization의 채팅 UI 작업물을 개인 저장소의 `static/`에 반영했습니다. 모바일 대화 메뉴, 닫기, 상태 안내, 기록·채팅 모듈을 포함합니다. 공개 UI 시연은 [GitHub Pages](https://cerhovah.github.io/Codyssey_Mission_B7-1/)에 별도로 빌드하며 실제 API 호출과 인증 입력을 제거합니다. 원본 `static/`은 아래 동일 origin API 계약을 그대로 사용합니다.
+
 ## 1. 파일 역할
 
 | 경로 | 역할 |
@@ -11,6 +13,9 @@
 | `static/js/api.js` | 모든 `/api/...` fetch, Bearer, JSON·비JSON 응답 계약 |
 | `static/js/auth.js` | 가입·로그인·토큰·모달·로그아웃·탭 간 세션 동기화 |
 | `static/js/app.js` | 기록 조회, 질문 전송, 렌더링, 로딩·세션 경합 처리 |
+| `static/js/chat-content.js` | 이후 봇 성격·안내 문구를 바꿀 때의 콘텐츠 설정 |
+| `static/js/history.js` | 대화 기록 표시와 선택 |
+| `static/js/shell.js` | 사이드바·모바일 메뉴·키보드 셸 |
 | `static/js/keyboard.js` | Enter·Shift+Enter·IME 전송 판정 |
 
 프론트 코드는 Python 모듈, 서버 템플릿, `.env`, 개인 DB 경로를 import하거나 읽지 않습니다. `fetch`는 `api.js` 한 곳에만 있고 동일 origin 상대 경로만 사용합니다.

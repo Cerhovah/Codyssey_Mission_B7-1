@@ -2,16 +2,18 @@
 
 > B7-1 웹 기반 AI 챗봇 개인 풀스택 기준 구현
 
+**상시 UI 시연:** [GitHub Pages에서 보기](https://cerhovah.github.io/Codyssey_Mission_B7-1/) — 데스크톱·모바일 레이아웃과 채팅 흐름을 체험하는 브라우저 전용 데모입니다. 실제 AI, 계정, 서버, 영구 DB는 연결되지 않으며 입력은 현재 탭에만 저장됩니다. 실제 API를 사용하는 원본 프론트는 `static/`과 아래 로컬 실행 절차를 참고하세요.
+
 ## 현재 상태
 
 이 저장소는 팀 Organization과 분리된 개인 기준 구현입니다. 최신 명세와 API 계약의 로컬 구현·재현 게이트를 완료했으며, 외부 조건과 실제 결과는 `docs/IMPLEMENTATION_STATUS.md`에 분리해 기록합니다.
 
 - `LOCAL_MINIMUM`: PASS — 새 가상환경 설치부터 Mock 풀스택·브라우저·DB·실패 복구까지 로컬 검증했습니다.
 - `REAL_AI`: BLOCKED_EXTERNAL — 실제 공급자 계약·키·호출 승인이 필요합니다.
-- `PUBLIC_URL`: BLOCKED_EXTERNAL — AWS/비용/외부 공개 승인이 필요합니다.
+- `PUBLIC_URL`: UI_DEMO_ONLY — 위 공개 주소는 정적 시연입니다. 실제 FastAPI·인증·AI 서비스를 공개한 주소는 아직 없습니다.
 - `TEAM_HISTORY`: NEEDS_TEAM_REVIEW — 개인 저장소 이력은 팀 4명 기여·PR 증거를 대신하지 않습니다.
 
-백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 연결했습니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구, 격리 smoke, 읽기 전용 DB 조회, Git 범위 감사, EC2 설정 렌더링, 완전한 새 가상환경의 205개 Python 테스트를 통과했습니다. OpenAI 호환 adapter는 가짜 HTTP transport로 검증했지만 실제 공급자 호출, 공개 URL, 팀 PR은 승인·외부 증거 대기입니다. 따라서 로컬 최소 구현 PASS는 미션 전체 완료를 뜻하지 않습니다.
+백엔드와 `static/` 브라우저 프론트는 회원가입·로그인·보호 채팅·최근 5쌍 문맥·Mock 답변·사용자별 SQLite 저장/조회·오류 복구·모바일 키보드 흐름까지 연결했습니다. 실제 SQLite INSERT·COMMIT 실패의 rollback과 복구, 격리 smoke, 읽기 전용 DB 조회, Git 범위 감사, EC2 설정 렌더링, 완전한 새 가상환경의 205개 Python 테스트를 통과했습니다. OpenAI 호환 adapter는 가짜 HTTP transport로 검증했지만 실제 공급자 호출과 서버 공개는 아직 진행하지 않았습니다. 따라서 로컬 최소 구현 PASS와 공개 UI 시연은 미션 전체 완료를 뜻하지 않습니다.
 
 ## 문제와 사용자
 

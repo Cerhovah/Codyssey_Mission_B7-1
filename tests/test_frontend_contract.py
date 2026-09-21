@@ -31,6 +31,9 @@ def test_root_and_stylesheet_are_served_by_fastapi(frontend_client: TestClient) 
     auth_script = frontend_client.get("/static/js/auth.js")
     app_script = frontend_client.get("/static/js/app.js")
     keyboard_script = frontend_client.get("/static/js/keyboard.js")
+    shell_script = frontend_client.get("/static/js/shell.js")
+    content_script = frontend_client.get("/static/js/chat-content.js")
+    history_script = frontend_client.get("/static/js/history.js")
 
     assert root.status_code == 200
     assert root.headers["content-type"].startswith("text/html")
@@ -40,8 +43,12 @@ def test_root_and_stylesheet_are_served_by_fastapi(frontend_client: TestClient) 
     assert auth_script.status_code == 200
     assert app_script.status_code == 200
     assert keyboard_script.status_code == 200
+    assert shell_script.status_code == 200
+    assert content_script.status_code == 200
+    assert history_script.status_code == 200
     assert "javascript" in api_script.headers["content-type"]
     assert "javascript" in keyboard_script.headers["content-type"]
+    assert "javascript" in shell_script.headers["content-type"]
 
 
 def test_html_has_minimum_chat_and_auth_state_regions() -> None:
@@ -49,7 +56,6 @@ def test_html_has_minimum_chat_and_auth_state_regions() -> None:
 
     html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
     required_ids = {
-        "session-status",
         "open-login-button",
         "logout-button",
         "connection-status",
@@ -62,6 +68,10 @@ def test_html_has_minimum_chat_and_auth_state_regions() -> None:
         "auth-modal",
         "auth-content",
         "toast-region",
+        "sidebar",
+        "sidebar-open-button",
+        "sidebar-close-button",
+        "sidebar-backdrop",
     }
 
     for element_id in required_ids:
@@ -169,8 +179,8 @@ def test_chat_response_is_guarded_by_current_session() -> None:
     """로그아웃·사용자 전환 뒤 도착한 응답은 현재 화면에 그리지 않습니다."""
 
     app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
-    chat_block = app_source.split("async function handleChatSubmit", 1)[1]
-    chat_block = chat_block.split("async function loadChatHistory", 1)[0]
+    chat_block = app_source.split("async function performChat", 1)[1]
+    chat_block = chat_block.split("function handleChatSubmit", 1)[0]
 
     assert "requestGeneration !== sessionGeneration" in chat_block
     assert chat_block.count("token !== getAccessToken()") == 2
@@ -187,7 +197,7 @@ def test_history_uses_unwrapped_array_and_response_field() -> None:
     assert "result.status !== 200" in api_source
     assert "!Array.isArray(result.data)" in api_source
     assert "chats: result.data" in api_source
-    assert "for (const item of result.chats)" in app_source
+    assert "for (const item of sortChatHistory(result.chats))" in app_source
     assert 'appendMessage("assistant", item.response, item.latency_ms)' in app_source
     assert "item.answer" not in app_source
 
@@ -217,7 +227,8 @@ def test_history_loading_blocks_chat_and_ignores_stale_sessions() -> None:
     assert "requestGeneration !== sessionGeneration" in history_block
     assert history_block.count("token !== getAccessToken()") == 2
     assert "activeHistoryController?.abort()" in app_source
-    assert 'title: "대화 기록을 불러오지 못했습니다."' in history_block
+    assert "title: CHAT_CONTENT.historyFailureMessage" in history_block
+    assert "description: CHAT_CONTENT.historyFailureDescription" in history_block
 
 
 def test_only_protected_api_unauthorized_clears_the_session() -> None:
@@ -230,15 +241,15 @@ def test_only_protected_api_unauthorized_clears_the_session() -> None:
 
     assert "error.status !== 401" in app_source
     assert "clearSession()" in app_source
-    assert 'openLoginModal("로그인이 만료되었습니다. 다시 로그인해 주세요.")' in app_source
+    assert "openLoginModal(CHAT_CONTENT.sessionExpiredMessage)" in app_source
     assert "clearSession()" not in login_block
     assert "showLoginError(message)" in login_block
     assert 'elements.authNotice.textContent = ""' in login_block
 
-    chat_catch = app_source.split("async function handleChatSubmit", 1)[1]
-    chat_catch = chat_catch.split("async function loadChatHistory", 1)[0]
+    chat_catch = app_source.split("async function performChat", 1)[1]
+    chat_catch = chat_catch.split("function handleChatSubmit", 1)[0]
     assert chat_catch.index("token !== getAccessToken()") < chat_catch.index(
-        "handleProtectedUnauthorized(error)"
+        "handleProtectedUnauthorized(error, question)"
     )
 
 
@@ -246,8 +257,8 @@ def test_chat_loading_blocks_duplicate_submit_and_recovers_in_finally() -> None:
     """느린 요청 중 모든 제출 경로를 막고 성공·실패 뒤 폼을 복구합니다."""
 
     app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
-    submit_block = app_source.split("async function handleChatSubmit", 1)[1]
-    submit_block = submit_block.split("async function loadChatHistory", 1)[0]
+    submit_block = app_source.split("async function performChat", 1)[1]
+    submit_block = submit_block.split("function handleChatSubmit", 1)[0]
 
     assert "if (sending || loadingHistory)" in submit_block
     assert "setSending(true)" in submit_block
@@ -256,7 +267,7 @@ def test_chat_loading_blocks_duplicate_submit_and_recovers_in_finally() -> None:
     assert "elements.questionInput.focus()" in submit_block
     assert 'elements.chatForm.setAttribute("aria-busy", String(busy))' in app_source
     assert 'elements.messageList.setAttribute("aria-busy", String(busy))' in app_source
-    assert 'elements.sendButton.textContent = sending' in app_source
+    assert "elements.sendButtonLabel.textContent = sendLabel" in app_source
     assert "elements.questionInput.disabled = !authenticated || busy" in app_source
 
 
@@ -264,8 +275,8 @@ def test_failed_chat_keeps_question_for_manual_retry() -> None:
     """실패 시 입력을 보존하고 성공한 현재 요청에서만 비웁니다."""
 
     app_source = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
-    submit_block = app_source.split("async function handleChatSubmit", 1)[1]
-    submit_block = submit_block.split("async function loadChatHistory", 1)[0]
+    submit_block = app_source.split("async function performChat", 1)[1]
+    submit_block = submit_block.split("function handleChatSubmit", 1)[0]
     success_block, catch_block = submit_block.split("} catch (error)", 1)
 
     assert 'elements.questionInput.value = ""' in success_block
@@ -279,7 +290,8 @@ def test_session_change_clears_private_draft_counter_and_toast() -> None:
     auth_change = app_source.split("function handleAuthChange", 1)[1]
     auth_change = auth_change.split("function initializeApp", 1)[0]
 
-    assert 'elements.questionInput.value = ""' in auth_change
+    assert 'elements.questionInput.value = protectedDraft ?? ""' in auth_change
+    assert "protectedDraft = null" in auth_change
     assert "elements.toastRegion.replaceChildren()" in auth_change
     assert "updateCounter()" in auth_change
     assert "activeChatController?.abort()" in auth_change

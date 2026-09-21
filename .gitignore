@@ -40,4 +40,5 @@ logs/
 htmlcov/
 artifacts/
 deploy/generated/
+preview-dist/
 *.bak
